@@ -1,4 +1,6 @@
+sudo: false
 language: rust
+
 rust:
   - nightly
 notifications:
@@ -8,4 +10,4 @@ before_script:
   - rustc --version
   - cargo --version
 script:
-  - cargo test --all
+  - CC=clang CXX=clang++ cargo test --all --verbose
