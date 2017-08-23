@@ -8,6 +8,7 @@ use std::process::Command;
 fn gen_bindings() {
     let bindings = bindgen::Builder::default()
         .header("binaryen/src/binaryen-c.h")
+        .generate_comments(true)
         .generate()
         .expect("Unable to generate bindings");
 

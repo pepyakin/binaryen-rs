@@ -1,3 +1,10 @@
+[package]
 
-[workspace]
-members = ["binaryen-sys"]
+name = "binaryen"
+version = "0.1.0"
+authors = ["Sergey Pepyakin <s.pepyakin@gmail.com>"]
+license = "Apache-2.0"
+
+[dependencies]
+binaryen-sys = { path = "binaryen-sys", version = "0.1.0" }
+
