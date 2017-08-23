@@ -1,7 +1,7 @@
-extern crate binaryen_sys;
+pub extern crate binaryen_sys;
 
 use std::ffi::CStr;
-use binaryen_sys as ffi;
+pub use binaryen_sys as ffi;
 
 #[derive(Clone, Copy)]
 pub enum ValueType {
@@ -32,8 +32,12 @@ pub struct Func {
     inner: ffi::BinaryenFunctionRef,
 }
 
-pub struct FuncBuilder {
+pub struct FuncBuilder {}
 
+impl FuncBuilder {
+
+    fn set_body(&mut self) {
+    }
 }
 
 pub struct ModuleBuilder {
@@ -52,7 +56,11 @@ impl ModuleBuilder {
         args_ty: &[ValueType],
     ) -> FuncType {
         let raw_result_ty = result_ty.raw_type();
-        let mut raw_args_ty = args_ty.iter().cloned().map(ValueType::raw_type).collect::<Vec<_>>();
+        let mut raw_args_ty = args_ty
+            .iter()
+            .cloned()
+            .map(ValueType::raw_type)
+            .collect::<Vec<_>>();
         let func_ty = unsafe {
             ffi::BinaryenAddFunctionType(
                 self.inner,
@@ -65,9 +73,13 @@ impl ModuleBuilder {
         FuncType { inner: func_ty }
     }
 
-    pub fn add_func() -> FuncBuilder {
-
+    pub fn print(&self) {
+        unsafe {
+            ffi::BinaryenModulePrint(self.inner);
+        }
     }
+
+    // pub fn add_func() -> FuncBuilder {}
 }
 
 impl Drop for ModuleBuilder {
