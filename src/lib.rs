@@ -729,6 +729,7 @@ impl Expr {
     }
 }
 
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Literal {
     I32(u32),
     I64(u64),
@@ -749,7 +750,7 @@ impl From<Literal> for ffi::BinaryenLiteral {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct RelooperBlockId(usize);
 
 pub struct Relooper {
