@@ -10,7 +10,7 @@ mod name;
 use name::Name;
 
 struct InnerModule {
-    raw: ffi::BinaryenModuleRef
+    raw: ffi::BinaryenModuleRef,
 }
 
 impl Drop for InnerModule {
@@ -31,9 +31,7 @@ impl Module {
 
     pub fn from_raw(raw: ffi::BinaryenModuleRef) -> Module {
         Module {
-            inner: Rc::new(InnerModule {
-                raw
-            }),
+            inner: Rc::new(InnerModule { raw }),
         }
     }
 
@@ -95,10 +93,8 @@ impl Module {
         let segments_count = segments.len();
 
         unsafe {
-            let mut segment_offsets: Vec<_> = segments
-                .iter()
-                .map(|s| s.offset_expr.to_raw())
-                .collect();
+            let mut segment_offsets: Vec<_> =
+                segments.iter().map(|s| s.offset_expr.to_raw()).collect();
 
             ffi::BinaryenSetMemory(
                 self.inner.raw,
@@ -113,12 +109,7 @@ impl Module {
         }
     }
 
-    pub fn add_fn_type(
-        &self,
-        name: Option<Name>,
-        param_tys: &[ValueTy],
-        result_ty: Ty,
-    ) -> FnType {
+    pub fn add_fn_type(&self, name: Option<Name>, param_tys: &[ValueTy], result_ty: Ty) -> FnType {
         let name_ptr = name.map_or(ptr::null(), |n| n.as_ptr());
         let raw = unsafe {
             let mut param_tys_raw = param_tys
@@ -137,16 +128,14 @@ impl Module {
         FnType { raw }
     }
 
-    pub fn add_fn(
-        &self,
-        name: Name,
-        fn_ty: &FnType,
-        var_tys: &[ValueTy],
-        body: Expr,
-    ) -> FnRef {
+    pub fn add_fn(&self, name: Name, fn_ty: &FnType, var_tys: &[ValueTy], body: Expr) -> FnRef {
         let name_ptr = name.as_ptr();
         let inner = unsafe {
-            let mut var_tys_raw = var_tys.iter().cloned().map(|ty| ty.into()).collect::<Vec<_>>();
+            let mut var_tys_raw = var_tys
+                .iter()
+                .cloned()
+                .map(|ty| ty.into())
+                .collect::<Vec<_>>();
             ffi::BinaryenAddFunction(
                 self.inner.raw,
                 name_ptr,
@@ -285,22 +274,14 @@ impl Module {
 
     pub fn set_local(&mut self, index: u32, value: Expr) -> Expr {
         let raw_expr = unsafe {
-            ffi::BinaryenSetLocal(
-                self.inner.raw,
-                index as ffi::BinaryenIndex,
-                value.to_raw(),
-            )
+            ffi::BinaryenSetLocal(self.inner.raw, index as ffi::BinaryenIndex, value.to_raw())
         };
         Expr::from_raw(self, raw_expr)
     }
 
     pub fn tee_local(&mut self, index: u32, value: Expr) -> Expr {
         let raw_expr = unsafe {
-            ffi::BinaryenTeeLocal(
-                self.inner.raw,
-                index as ffi::BinaryenIndex,
-                value.to_raw(),
-            )
+            ffi::BinaryenTeeLocal(self.inner.raw, index as ffi::BinaryenIndex, value.to_raw())
         };
         Expr::from_raw(self, raw_expr)
     }
@@ -344,9 +325,8 @@ impl Module {
     }
 
     pub fn binary(&mut self, op: BinaryOp, lhs: Expr, rhs: Expr) -> Expr {
-        let raw_expr = unsafe {
-            ffi::BinaryenBinary(self.inner.raw, op.into(), lhs.to_raw(), rhs.to_raw())
-        };
+        let raw_expr =
+            unsafe { ffi::BinaryenBinary(self.inner.raw, op.into(), lhs.to_raw(), rhs.to_raw()) };
         Expr::from_raw(self, raw_expr)
     }
 }
