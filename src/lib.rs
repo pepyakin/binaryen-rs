@@ -173,7 +173,7 @@ impl Module {
         FnType { raw }
     }
 
-    pub fn new_fn<S: ToCString>(
+    pub fn add_fn<S: ToCString>(
         &self,
         name: S,
         fn_ty: &FnType,
@@ -811,7 +811,7 @@ fn test_hello_world() {
     let y = module.get_local(1, ValueTy::I32);
     let add = module.binary(BinaryOp::AddInt32, x, y);
 
-    let _adder = module.new_fn("adder", &iii, &[], add);
+    let _adder = module.add_fn("adder", &iii, &[], add);
 
     module.print();
 }
