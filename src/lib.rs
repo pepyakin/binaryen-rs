@@ -768,3 +768,20 @@ impl Relooper {
         }
     }
 }
+
+// see https://github.com/WebAssembly/binaryen/blob/master/test/example/c-api-hello-world.c
+#[test]
+fn test_hello_world() {
+    let mut module = Module::new();
+
+    let params = vec![ValueTy::I32, ValueTy::I32];
+    let iii = module.add_fn_type(Some(CString::new("iii").unwrap()), params, Ty::value(ValueTy::I32));
+
+    let x = module.get_local(0, ValueTy::I32);
+    let y = module.get_local(1, ValueTy::I32);
+    let add = module.binary(BinaryOp::AddInt32, x, y);
+    
+    let _adder = module.new_fn(CString::new("adder").unwrap(), &iii, vec![], add);
+
+    module.print();
+}
