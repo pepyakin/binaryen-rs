@@ -24,7 +24,7 @@ pub struct Module {
 }
 
 impl Module {
-    fn save_string_and_return_ptr(&self, string: CString) -> *const c_char {
+    fn stash_cstring(&self, string: CString) -> *const c_char {
         let str_ptr = string.as_ptr();
         self.inner.c_strings.borrow_mut().push(string);
         str_ptr
@@ -96,7 +96,7 @@ impl Module {
         name: Option<CString>,
         segments: Vec<Segment>,
     ) {
-        let name_ptr = name.map_or(ptr::null(), |n| self.save_string_and_return_ptr(n));
+        let name_ptr = name.map_or(ptr::null(), |n| self.stash_cstring(n));
         let mut segment_datas: Vec<_> = segments.iter().map(|s| s.data.as_ptr()).collect();
         let mut segment_sizes: Vec<_> = segments.iter().map(|s| s.data.len() as u32).collect();
         let segments_count = segments.len();
@@ -127,7 +127,7 @@ impl Module {
         result_ty: Ty,
     ) -> FnType {
         let raw = unsafe {
-            let name_ptr = name.map_or(ptr::null(), |n| self.save_string_and_return_ptr(n));
+            let name_ptr = name.map_or(ptr::null(), |n| self.stash_cstring(n));
             let mut param_tys_raw = param_tys
                 .into_iter()
                 .map(|ty| ty.into())
@@ -151,7 +151,7 @@ impl Module {
         body: Expr,
     ) -> FnRef {
         let inner = unsafe {
-            let name_ptr = self.save_string_and_return_ptr(name);
+            let name_ptr = self.stash_cstring(name);
             let mut var_tys_raw = var_tys.into_iter().map(|ty| ty.into()).collect::<Vec<_>>();
             ffi::BinaryenAddFunction(
                 self.inner.raw,
@@ -166,7 +166,7 @@ impl Module {
     }
 
     pub fn add_global(&self, name: CString, ty: ValueTy, mutable: bool, init: Expr) {
-        let name_ptr = self.save_string_and_return_ptr(name);
+        let name_ptr = self.stash_cstring(name);
         unsafe {
             ffi::BinaryenAddGlobal(
                 self.inner.raw,
@@ -185,9 +185,9 @@ impl Module {
         external_base_name: CString,
         fn_ty: &FnType,
     ) {
-        let internal_name_ptr = self.save_string_and_return_ptr(internal_name);
-        let external_module_name_ptr = self.save_string_and_return_ptr(external_module_name);
-        let external_base_name_ptr = self.save_string_and_return_ptr(external_base_name);
+        let internal_name_ptr = self.stash_cstring(internal_name);
+        let external_module_name_ptr = self.stash_cstring(external_module_name);
+        let external_base_name_ptr = self.stash_cstring(external_base_name);
         unsafe {
             ffi::BinaryenAddImport(
                 self.inner.raw,
@@ -202,7 +202,7 @@ impl Module {
     // TODO: undefined ty?
     // https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h#L272
     pub fn block(&mut self, name: Option<CString>, children: Vec<Expr>, ty: Ty) -> Expr {
-        let name_ptr = name.map_or(ptr::null(), |n| self.save_string_and_return_ptr(n));
+        let name_ptr = name.map_or(ptr::null(), |n| self.stash_cstring(n));
 
         let raw_expr = unsafe {
             let mut children_raw: Vec<_> = children.into_iter().map(|ty| ty.into_raw()).collect();
@@ -269,14 +269,14 @@ impl Module {
     }
 
     pub fn get_global(&mut self, name: CString, ty: ValueTy) -> Expr {
-        let global_name_ptr = self.save_string_and_return_ptr(name);
+        let global_name_ptr = self.stash_cstring(name);
         let raw_expr =
             unsafe { ffi::BinaryenGetGlobal(self.inner.raw, global_name_ptr, ty.into()) };
         Expr::from_raw(self, raw_expr)
     }
 
     pub fn set_global(&mut self, name: CString, value: Expr) -> Expr {
-        let global_name_ptr = self.save_string_and_return_ptr(name);
+        let global_name_ptr = self.stash_cstring(name);
         let raw_expr =
             unsafe { ffi::BinaryenSetGlobal(self.inner.raw, global_name_ptr, value.into_raw()) };
         Expr::from_raw(self, raw_expr)
@@ -320,7 +320,7 @@ impl Module {
     }
 
     pub fn call(&mut self, name: CString, operands: Vec<Expr>) -> Expr {
-        let name_ptr = self.save_string_and_return_ptr(name);
+        let name_ptr = self.stash_cstring(name);
         let raw_expr = unsafe {
             let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.into_raw()).collect();
             ffi::BinaryenCall(
@@ -335,7 +335,7 @@ impl Module {
     }
 
     pub fn call_import(&mut self, name: CString, operands: Vec<Expr>, ty: Ty) -> Expr {
-        let name_ptr = self.save_string_and_return_ptr(name);
+        let name_ptr = self.stash_cstring(name);
         let raw_expr = unsafe {
             let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.into_raw()).collect();
             ffi::BinaryenCallImport(
