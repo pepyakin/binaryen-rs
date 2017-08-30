@@ -351,6 +351,12 @@ impl Module {
     }
 }
 
+impl Default for Module {
+    fn default() -> Module {
+        Module::new()
+    }
+}
+
 pub struct Segment<'a> {
     data: &'a [u8],
     offset_expr: Expr,
@@ -761,6 +767,12 @@ impl Relooper {
             let code_ptr = code.map_or(ptr::null_mut(), |e| e.raw);
             ffi::RelooperAddBranch(from_block as _, to_block as _, condition_ptr, code_ptr)
         }
+    }
+}
+
+impl Default for Relooper {
+    fn default() -> Relooper {
+        Relooper::new()
     }
 }
 
