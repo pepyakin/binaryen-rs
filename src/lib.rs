@@ -2,15 +2,15 @@ pub extern crate binaryen_sys;
 
 pub use binaryen_sys as ffi;
 
-use std::ffi::CString;
-use std::cell::RefCell;
 use std::rc::Rc;
 use std::os::raw::{c_char, c_int};
 use std::ptr;
 
+mod name;
+use name::Name;
+
 struct InnerModule {
-    raw: ffi::BinaryenModuleRef,
-    c_strings: RefCell<Vec<CString>>,
+    raw: ffi::BinaryenModuleRef
 }
 
 impl Drop for InnerModule {
@@ -23,42 +23,7 @@ pub struct Module {
     inner: Rc<InnerModule>,
 }
 
-pub trait ToCString {
-    fn to_cstring(self) -> CString;
-}
-
-impl<'a> ToCString for String {
-    fn to_cstring(self) -> CString {
-        CString::new(self.as_str()).unwrap()
-    }
-}
-
-impl<'a> ToCString for &'a String {
-    fn to_cstring(self) -> CString {
-        CString::new(self.as_str()).unwrap()
-    }
-}
-
-impl<'a> ToCString for &'a str {
-    fn to_cstring(self) -> CString {
-        CString::new(self).unwrap()
-    }
-}
-
-impl ToCString for CString {
-    fn to_cstring(self) -> CString {
-        self
-    }
-}
-
 impl Module {
-    fn stash_cstring<S: ToCString>(&self, string: S) -> *const c_char {
-        let cstring = string.to_cstring();
-        let ptr = cstring.as_ptr();
-        self.inner.c_strings.borrow_mut().push(cstring);
-        ptr
-    }
-
     pub fn new() -> Module {
         let raw = unsafe { ffi::BinaryenModuleCreate() };
         Module::from_raw(raw)
@@ -67,8 +32,7 @@ impl Module {
     pub fn from_raw(raw: ffi::BinaryenModuleRef) -> Module {
         Module {
             inner: Rc::new(InnerModule {
-                raw,
-                c_strings: RefCell::new(Vec::new()),
+                raw
             }),
         }
     }
@@ -118,14 +82,14 @@ impl Module {
         buf
     }
 
-    pub fn set_memory<S: ToCString>(
+    pub fn set_memory(
         &mut self,
         initial: u32,
         maximal: u32,
-        name: Option<S>,
+        name: Option<Name>,
         segments: &[Segment],
     ) {
-        let name_ptr = name.map_or(ptr::null(), |n| self.stash_cstring(n));
+        let name_ptr = name.map_or(ptr::null(), |n| n.as_ptr());
         let mut segment_datas: Vec<_> = segments.iter().map(|s| s.data.as_ptr()).collect();
         let mut segment_sizes: Vec<_> = segments.iter().map(|s| s.data.len() as u32).collect();
         let segments_count = segments.len();
@@ -149,13 +113,13 @@ impl Module {
         }
     }
 
-    pub fn add_fn_type<S: ToCString>(
+    pub fn add_fn_type(
         &self,
-        name: Option<S>,
+        name: Option<Name>,
         param_tys: &[ValueTy],
         result_ty: Ty,
     ) -> FnType {
-        let name_ptr = name.map_or(ptr::null(), |n| self.stash_cstring(n));
+        let name_ptr = name.map_or(ptr::null(), |n| n.as_ptr());
         let raw = unsafe {
             let mut param_tys_raw = param_tys
                 .iter()
@@ -173,14 +137,14 @@ impl Module {
         FnType { raw }
     }
 
-    pub fn add_fn<S: ToCString>(
+    pub fn add_fn(
         &self,
-        name: S,
+        name: Name,
         fn_ty: &FnType,
         var_tys: &[ValueTy],
         body: Expr,
     ) -> FnRef {
-        let name_ptr = self.stash_cstring(name);
+        let name_ptr = name.as_ptr();
         let inner = unsafe {
             let mut var_tys_raw = var_tys.iter().cloned().map(|ty| ty.into()).collect::<Vec<_>>();
             ffi::BinaryenAddFunction(
@@ -195,8 +159,8 @@ impl Module {
         FnRef { inner }
     }
 
-    pub fn add_global<S: ToCString>(&self, name: S, ty: ValueTy, mutable: bool, init: Expr) {
-        let name_ptr = self.stash_cstring(name);
+    pub fn add_global(&self, name: Name, ty: ValueTy, mutable: bool, init: Expr) {
+        let name_ptr = name.as_ptr();
         unsafe {
             ffi::BinaryenAddGlobal(
                 self.inner.raw,
@@ -208,16 +172,16 @@ impl Module {
         }
     }
 
-    pub fn add_import<S1: ToCString, S2: ToCString, S3: ToCString>(
+    pub fn add_import(
         &mut self,
-        internal_name: S1,
-        external_module_name: S2,
-        external_base_name: S3,
+        internal_name: Name,
+        external_module_name: Name,
+        external_base_name: Name,
         fn_ty: &FnType,
     ) {
-        let internal_name_ptr = self.stash_cstring(internal_name);
-        let external_module_name_ptr = self.stash_cstring(external_module_name);
-        let external_base_name_ptr = self.stash_cstring(external_base_name);
+        let internal_name_ptr = internal_name.as_ptr();
+        let external_module_name_ptr = external_module_name.as_ptr();
+        let external_base_name_ptr = external_base_name.as_ptr();
         unsafe {
             ffi::BinaryenAddImport(
                 self.inner.raw,
@@ -231,8 +195,8 @@ impl Module {
 
     // TODO: undefined ty?
     // https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h#L272
-    pub fn block<S: ToCString>(&mut self, name: Option<S>, children: &[Expr], ty: Ty) -> Expr {
-        let name_ptr = name.map_or(ptr::null(), |n| self.stash_cstring(n));
+    pub fn block(&mut self, name: Option<Name>, children: &[Expr], ty: Ty) -> Expr {
+        let name_ptr = name.map_or(ptr::null(), |n| n.as_ptr());
 
         let raw_expr = unsafe {
             let mut children_raw: Vec<_> = children.iter().map(|ty| ty.to_raw()).collect();
@@ -298,15 +262,15 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn get_global<S: ToCString>(&mut self, name: S, ty: ValueTy) -> Expr {
-        let global_name_ptr = self.stash_cstring(name);
+    pub fn get_global(&mut self, name: Name, ty: ValueTy) -> Expr {
+        let global_name_ptr = name.as_ptr();
         let raw_expr =
             unsafe { ffi::BinaryenGetGlobal(self.inner.raw, global_name_ptr, ty.into()) };
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn set_global<S: ToCString>(&mut self, name: S, value: Expr) -> Expr {
-        let global_name_ptr = self.stash_cstring(name);
+    pub fn set_global(&mut self, name: Name, value: Expr) -> Expr {
+        let global_name_ptr = name.as_ptr();
         let raw_expr =
             unsafe { ffi::BinaryenSetGlobal(self.inner.raw, global_name_ptr, value.to_raw()) };
         Expr::from_raw(self, raw_expr)
@@ -349,8 +313,8 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call<S: ToCString>(&mut self, name: S, operands: &[Expr]) -> Expr {
-        let name_ptr = self.stash_cstring(name);
+    pub fn call(&mut self, name: Name, operands: &[Expr]) -> Expr {
+        let name_ptr = name.as_ptr();
         let raw_expr = unsafe {
             let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
             ffi::BinaryenCall(
@@ -364,8 +328,8 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call_import<S: ToCString>(&mut self, name: S, operands: &[Expr], ty: Ty) -> Expr {
-        let name_ptr = self.stash_cstring(name);
+    pub fn call_import(&mut self, name: Name, operands: &[Expr], ty: Ty) -> Expr {
+        let name_ptr = name.as_ptr();
         let raw_expr = unsafe {
             let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
             ffi::BinaryenCallImport(
@@ -806,27 +770,13 @@ fn test_hello_world() {
     let mut module = Module::new();
 
     let params = &[ValueTy::I32, ValueTy::I32];
-    let iii = module.add_fn_type(Some("iii"), params, Ty::value(ValueTy::I32));
+    let iii = module.add_fn_type(Some("iii".into()), params, Ty::value(ValueTy::I32));
 
     let x = module.get_local(0, ValueTy::I32);
     let y = module.get_local(1, ValueTy::I32);
     let add = module.binary(BinaryOp::AddI32, x, y);
 
-    let _adder = module.add_fn("adder", &iii, &[], add);
+    let _adder = module.add_fn("adder".into(), &iii, &[], add);
 
     module.print();
-}
-
-#[test]
-fn test_strings() {
-    let mut module = Module::new();
-
-    // Should be possible to use all of these.
-    let _ = module.call("&str", &[]);
-
-    let string = String::from("String");
-    let _ = module.call(&string, &[]);
-
-    let cstring = CString::new("CString").unwrap();
-    let _ = module.call(cstring, &[]);
 }
