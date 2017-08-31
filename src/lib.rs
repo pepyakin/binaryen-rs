@@ -780,3 +780,26 @@ fn test_hello_world() {
     assert!(module.is_valid());
     module.print();
 }
+
+#[test]
+fn test_simple() {
+    let mut module = Module::new();
+
+    let main_fn_ty = module.add_fn_type(Some("main_fn_ty".into()), &[], Ty::value(ValueTy::I32));
+
+    {
+        let segment_data = b"Hello world\0";
+        let segment_offset_expr = module.const_(Literal::I32(0));
+        let segments = &[Segment::new(segment_data, segment_offset_expr)];
+        module.set_memory(1, 1, Some("mem".into()), segments);
+    }
+
+    let ret_1 = module.const_(Literal::I32(0));
+    // TODO: printf stuff
+
+    let main = module.add_fn("main".into(), &main_fn_ty, &[], ret_1);
+    module.set_start(&main);
+
+    assert!(module.is_valid());
+    module.print();
+}
