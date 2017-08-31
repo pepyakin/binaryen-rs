@@ -329,6 +329,13 @@ impl Module {
             unsafe { ffi::BinaryenBinary(self.inner.raw, op.into(), lhs.to_raw(), rhs.to_raw()) };
         Expr::from_raw(self, raw_expr)
     }
+
+    pub fn nop(&mut self) -> Expr {
+        let raw_expr = unsafe {
+            ffi::BinaryenNop(self.inner.raw)
+        };
+        Expr::from_raw(self, raw_expr)
+    }
 }
 
 impl Default for Module {
