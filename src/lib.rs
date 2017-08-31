@@ -84,7 +84,7 @@ impl Module {
         &mut self,
         initial: u32,
         maximal: u32,
-        name: Option<Name>,
+        name: Option<&Name>,
         segments: &[Segment],
     ) {
         let name_ptr = name.map_or(ptr::null(), |n| n.as_ptr());
@@ -109,7 +109,7 @@ impl Module {
         }
     }
 
-    pub fn add_fn_type(&self, name: Option<Name>, param_tys: &[ValueTy], result_ty: Ty) -> FnType {
+    pub fn add_fn_type(&self, name: Option<&Name>, param_tys: &[ValueTy], result_ty: Ty) -> FnType {
         let name_ptr = name.map_or(ptr::null(), |n| n.as_ptr());
         let raw = unsafe {
             let mut param_tys_raw = param_tys
@@ -128,7 +128,7 @@ impl Module {
         FnType { raw }
     }
 
-    pub fn add_fn(&self, name: Name, fn_ty: &FnType, var_tys: &[ValueTy], body: Expr) -> FnRef {
+    pub fn add_fn(&self, name: &Name, fn_ty: &FnType, var_tys: &[ValueTy], body: Expr) -> FnRef {
         let name_ptr = name.as_ptr();
         let inner = unsafe {
             let mut var_tys_raw = var_tys
@@ -148,7 +148,7 @@ impl Module {
         FnRef { inner }
     }
 
-    pub fn add_global(&self, name: Name, ty: ValueTy, mutable: bool, init: Expr) {
+    pub fn add_global(&self, name: &Name, ty: ValueTy, mutable: bool, init: Expr) {
         let name_ptr = name.as_ptr();
         unsafe {
             ffi::BinaryenAddGlobal(
@@ -163,9 +163,9 @@ impl Module {
 
     pub fn add_import(
         &mut self,
-        internal_name: Name,
-        external_module_name: Name,
-        external_base_name: Name,
+        internal_name: &Name,
+        external_module_name: &Name,
+        external_base_name: &Name,
         fn_ty: &FnType,
     ) {
         let internal_name_ptr = internal_name.as_ptr();
@@ -184,7 +184,7 @@ impl Module {
 
     // TODO: undefined ty?
     // https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h#L272
-    pub fn block(&mut self, name: Option<Name>, children: &[Expr], ty: Ty) -> Expr {
+    pub fn block(&mut self, name: Option<&Name>, children: &[Expr], ty: Ty) -> Expr {
         let name_ptr = name.map_or(ptr::null(), |n| n.as_ptr());
 
         let raw_expr = unsafe {
@@ -251,14 +251,14 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn get_global(&mut self, name: Name, ty: ValueTy) -> Expr {
+    pub fn get_global(&mut self, name: &Name, ty: ValueTy) -> Expr {
         let global_name_ptr = name.as_ptr();
         let raw_expr =
             unsafe { ffi::BinaryenGetGlobal(self.inner.raw, global_name_ptr, ty.into()) };
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn set_global(&mut self, name: Name, value: Expr) -> Expr {
+    pub fn set_global(&mut self, name: &Name, value: Expr) -> Expr {
         let global_name_ptr = name.as_ptr();
         let raw_expr =
             unsafe { ffi::BinaryenSetGlobal(self.inner.raw, global_name_ptr, value.to_raw()) };
@@ -294,7 +294,7 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call(&mut self, name: Name, operands: &[Expr]) -> Expr {
+    pub fn call(&mut self, name: &Name, operands: &[Expr]) -> Expr {
         let name_ptr = name.as_ptr();
         let raw_expr = unsafe {
             let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
@@ -309,7 +309,7 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call_import(&mut self, name: Name, operands: &[Expr], ty: Ty) -> Expr {
+    pub fn call_import(&mut self, name: &Name, operands: &[Expr], ty: Ty) -> Expr {
         let name_ptr = name.as_ptr();
         let raw_expr = unsafe {
             let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
@@ -769,13 +769,13 @@ fn test_hello_world() {
     let mut module = Module::new();
 
     let params = &[ValueTy::I32, ValueTy::I32];
-    let iii = module.add_fn_type(Some("iii".into()), params, Ty::value(ValueTy::I32));
+    let iii = module.add_fn_type(Some(&"iii".into()), params, Ty::value(ValueTy::I32));
 
     let x = module.get_local(0, ValueTy::I32);
     let y = module.get_local(1, ValueTy::I32);
     let add = module.binary(BinaryOp::AddI32, x, y);
 
-    let _adder = module.add_fn("adder".into(), &iii, &[], add);
+    let _adder = module.add_fn(&"adder".into(), &iii, &[], add);
 
     assert!(module.is_valid());
     module.print();
@@ -785,19 +785,17 @@ fn test_hello_world() {
 fn test_simple() {
     let mut module = Module::new();
 
-    let main_fn_ty = module.add_fn_type(Some("main_fn_ty".into()), &[], Ty::value(ValueTy::I32));
+    let main_fn_ty = module.add_fn_type(Some(&"main_fn_ty".into()), &[], Ty::none());
 
     {
         let segment_data = b"Hello world\0";
         let segment_offset_expr = module.const_(Literal::I32(0));
         let segments = &[Segment::new(segment_data, segment_offset_expr)];
-        module.set_memory(1, 1, Some("mem".into()), segments);
+        module.set_memory(1, 1, Some(&"mem".into()), segments);
     }
 
-    let ret_1 = module.const_(Literal::I32(0));
-    // TODO: printf stuff
-
-    let main = module.add_fn("main".into(), &main_fn_ty, &[], ret_1);
+    let nop = module.nop();
+    let main = module.add_fn(&"main".into(), &main_fn_ty, &[], nop);
     module.set_start(&main);
 
     assert!(module.is_valid());
