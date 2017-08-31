@@ -770,5 +770,6 @@ fn test_hello_world() {
 
     let _adder = module.add_fn("adder".into(), &iii, &[], add);
 
+    assert!(module.is_valid());
     module.print();
 }
