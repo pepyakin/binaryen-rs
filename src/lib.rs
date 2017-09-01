@@ -29,6 +29,16 @@ impl Module {
         Module::from_raw(raw)
     }
 
+    pub fn read(wasm_buf: &[u8]) -> Module {
+        let raw = unsafe {
+            ffi::BinaryenModuleRead(
+                wasm_buf.as_ptr() as *mut c_char, 
+                wasm_buf.len()
+            )
+        };
+        Self::from_raw(raw)
+    }
+
     pub fn from_raw(raw: ffi::BinaryenModuleRef) -> Module {
         Module {
             inner: Rc::new(InnerModule { raw }),
@@ -778,7 +788,6 @@ fn test_hello_world() {
     let _adder = module.add_fn(&"adder".into(), &iii, &[], add);
 
     assert!(module.is_valid());
-    module.print();
 }
 
 #[test]
@@ -799,5 +808,8 @@ fn test_simple() {
     module.set_start(&main);
 
     assert!(module.is_valid());
-    module.print();
+
+    let written_wasm = module.write();
+    let read_wasm = Module::read(&written_wasm);
+    assert!(read_wasm.is_valid());
 }
