@@ -45,19 +45,19 @@ impl Module {
         }
     }
 
-    pub fn trace(&mut self) {
+    pub fn trace(&self) {
         unsafe {
             ffi::BinaryenSetAPITracing(1);
         }
     }
 
-    pub fn auto_drop(&mut self) {
+    pub fn auto_drop(&self) {
         unsafe {
             ffi::BinaryenModuleAutoDrop(self.inner.raw);
         }
     }
 
-    pub fn optimize(&mut self) {
+    pub fn optimize(&self) {
         unsafe { ffi::BinaryenModuleOptimize(self.inner.raw) }
     }
 
@@ -69,13 +69,13 @@ impl Module {
         unsafe { ffi::BinaryenModulePrint(self.inner.raw) }
     }
 
-    pub fn set_start(&mut self, fn_ref: &FnRef) {
+    pub fn set_start(&self, fn_ref: &FnRef) {
         unsafe {
             ffi::BinaryenSetStart(self.inner.raw, fn_ref.inner);
         }
     }
 
-    pub fn write(&mut self) -> Vec<u8> {
+    pub fn write(&self) -> Vec<u8> {
         let mut buf: Vec<u8> = Vec::with_capacity(8192);
         unsafe {
             let written =
@@ -91,7 +91,7 @@ impl Module {
     }
 
     pub fn set_memory(
-        &mut self,
+        &self,
         initial: u32,
         maximal: u32,
         name: Option<&Name>,
@@ -172,7 +172,7 @@ impl Module {
     }
 
     pub fn add_import(
-        &mut self,
+        &self,
         internal_name: &Name,
         external_module_name: &Name,
         external_base_name: &Name,
@@ -194,7 +194,7 @@ impl Module {
 
     // TODO: undefined ty?
     // https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h#L272
-    pub fn block(&mut self, name: Option<&Name>, children: &[Expr], ty: Ty) -> Expr {
+    pub fn block(&self, name: Option<&Name>, children: &[Expr], ty: Ty) -> Expr {
         let name_ptr = name.map_or(ptr::null(), |n| n.as_ptr());
 
         let raw_expr = unsafe {
@@ -210,13 +210,13 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn const_(&mut self, literal: Literal) -> Expr {
+    pub fn const_(&self, literal: Literal) -> Expr {
         let raw_expr = unsafe { ffi::BinaryenConst(self.inner.raw, literal.into()) };
         Expr::from_raw(self, raw_expr)
     }
 
     pub fn load(
-        &mut self,
+        &self,
         bytes: u32,
         signed: bool,
         offset: u32,
@@ -239,7 +239,7 @@ impl Module {
     }
 
     pub fn store(
-        &mut self,
+        &self,
         bytes: u32,
         offset: u32,
         align: u32,
@@ -261,42 +261,42 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn get_global(&mut self, name: &Name, ty: ValueTy) -> Expr {
+    pub fn get_global(&self, name: &Name, ty: ValueTy) -> Expr {
         let global_name_ptr = name.as_ptr();
         let raw_expr =
             unsafe { ffi::BinaryenGetGlobal(self.inner.raw, global_name_ptr, ty.into()) };
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn set_global(&mut self, name: &Name, value: Expr) -> Expr {
+    pub fn set_global(&self, name: &Name, value: Expr) -> Expr {
         let global_name_ptr = name.as_ptr();
         let raw_expr =
             unsafe { ffi::BinaryenSetGlobal(self.inner.raw, global_name_ptr, value.to_raw()) };
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn get_local(&mut self, index: u32, ty: ValueTy) -> Expr {
+    pub fn get_local(&self, index: u32, ty: ValueTy) -> Expr {
         let raw_expr = unsafe {
             ffi::BinaryenGetLocal(self.inner.raw, index as ffi::BinaryenIndex, ty.into())
         };
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn set_local(&mut self, index: u32, value: Expr) -> Expr {
+    pub fn set_local(&self, index: u32, value: Expr) -> Expr {
         let raw_expr = unsafe {
             ffi::BinaryenSetLocal(self.inner.raw, index as ffi::BinaryenIndex, value.to_raw())
         };
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn tee_local(&mut self, index: u32, value: Expr) -> Expr {
+    pub fn tee_local(&self, index: u32, value: Expr) -> Expr {
         let raw_expr = unsafe {
             ffi::BinaryenTeeLocal(self.inner.raw, index as ffi::BinaryenIndex, value.to_raw())
         };
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn ret(&mut self, value: Option<Expr>) -> Expr {
+    pub fn ret(&self, value: Option<Expr>) -> Expr {
         let raw_expr = unsafe {
             let raw_value = value.map_or(ptr::null_mut(), |v| v.to_raw());
             ffi::BinaryenReturn(self.inner.raw, raw_value)
@@ -304,7 +304,7 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call(&mut self, name: &Name, operands: &[Expr]) -> Expr {
+    pub fn call(&self, name: &Name, operands: &[Expr]) -> Expr {
         let name_ptr = name.as_ptr();
         let raw_expr = unsafe {
             let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
@@ -319,7 +319,7 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call_import(&mut self, name: &Name, operands: &[Expr], ty: Ty) -> Expr {
+    pub fn call_import(&self, name: &Name, operands: &[Expr], ty: Ty) -> Expr {
         let name_ptr = name.as_ptr();
         let raw_expr = unsafe {
             let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
@@ -334,13 +334,13 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn binary(&mut self, op: BinaryOp, lhs: Expr, rhs: Expr) -> Expr {
+    pub fn binary(&self, op: BinaryOp, lhs: Expr, rhs: Expr) -> Expr {
         let raw_expr =
             unsafe { ffi::BinaryenBinary(self.inner.raw, op.into(), lhs.to_raw(), rhs.to_raw()) };
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn nop(&mut self) -> Expr {
+    pub fn nop(&self) -> Expr {
         let raw_expr = unsafe {
             ffi::BinaryenNop(self.inner.raw)
         };
@@ -750,7 +750,7 @@ impl Relooper {
     }
 
     pub fn add_branch(
-        &mut self,
+        &self,
         from: RelooperBlockId,
         to: RelooperBlockId,
         condition: Option<Expr>,
@@ -776,7 +776,7 @@ impl Default for Relooper {
 // see https://github.com/WebAssembly/binaryen/blob/master/test/example/c-api-hello-world.c
 #[test]
 fn test_hello_world() {
-    let mut module = Module::new();
+    let module = Module::new();
 
     let params = &[ValueTy::I32, ValueTy::I32];
     let iii = module.add_fn_type(Some(&"iii".into()), params, Ty::value(ValueTy::I32));
@@ -792,7 +792,7 @@ fn test_hello_world() {
 
 #[test]
 fn test_simple() {
-    let mut module = Module::new();
+    let module = Module::new();
 
     let main_fn_ty = module.add_fn_type(Some(&"main_fn_ty".into()), &[], Ty::none());
 
