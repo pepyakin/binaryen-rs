@@ -340,11 +340,48 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
+    pub fn host(&self, op: HostOp, name: Option<&Name>, operands: &[Expr]) -> Expr {
+        let name_ptr = name.map_or(ptr::null(), |n| n.as_ptr());
+        let raw_expr = unsafe {
+            let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
+            ffi::BinaryenHost(
+                self.inner.raw,
+                op.into(),
+                name_ptr,
+                operands_raw.as_mut_ptr(),
+                operands_raw.len() as _
+            )
+        };
+        Expr::from_raw(self, raw_expr)
+    }
+
     pub fn nop(&self) -> Expr {
         let raw_expr = unsafe {
             ffi::BinaryenNop(self.inner.raw)
         };
         Expr::from_raw(self, raw_expr)
+    }
+}
+
+#[derive(Copy, Clone, PartialEq, Eq)]
+pub enum HostOp {
+    PageSize,
+    CurrentMemory,
+    GrowMemory,
+    HasFeature
+}
+
+impl From<HostOp> for ffi::BinaryenOp {
+    fn from(hostop: HostOp) -> ffi::BinaryenOp {
+        use HostOp::*;
+        unsafe {
+            match hostop {
+                PageSize => ffi::BinaryenPageSize(),
+                CurrentMemory => ffi::BinaryenCurrentMemory(),
+                GrowMemory => ffi::BinaryenGrowMemory(),
+                HasFeature => ffi::BinaryenHasFeature(),
+            }
+        }
     }
 }
 
@@ -365,6 +402,7 @@ impl<'a> Segment<'a> {
     }
 }
 
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum BinaryOp {
     ClzI32,
     CtzI32,
