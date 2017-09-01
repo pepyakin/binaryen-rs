@@ -30,12 +30,8 @@ impl Module {
     }
 
     pub fn read(wasm_buf: &[u8]) -> Module {
-        let raw = unsafe {
-            ffi::BinaryenModuleRead(
-                wasm_buf.as_ptr() as *mut c_char, 
-                wasm_buf.len()
-            )
-        };
+        let raw =
+            unsafe { ffi::BinaryenModuleRead(wasm_buf.as_ptr() as *mut c_char, wasm_buf.len()) };
         Self::from_raw(raw)
     }
 
@@ -340,6 +336,11 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
+    pub fn unary(&self, op: UnaryOp, val: Expr) -> Expr {
+        let raw_expr = unsafe { ffi::BinaryenUnary(self.inner.raw, op.into(), val.to_raw()) };
+        Expr::from_raw(self, raw_expr)
+    }
+
     pub fn host(&self, op: HostOp, name: Option<&Name>, operands: &[Expr]) -> Expr {
         let name_ptr = name.map_or(ptr::null(), |n| n.as_ptr());
         let raw_expr = unsafe {
@@ -349,16 +350,14 @@ impl Module {
                 op.into(),
                 name_ptr,
                 operands_raw.as_mut_ptr(),
-                operands_raw.len() as _
+                operands_raw.len() as _,
             )
         };
         Expr::from_raw(self, raw_expr)
     }
 
     pub fn nop(&self) -> Expr {
-        let raw_expr = unsafe {
-            ffi::BinaryenNop(self.inner.raw)
-        };
+        let raw_expr = unsafe { ffi::BinaryenNop(self.inner.raw) };
         Expr::from_raw(self, raw_expr)
     }
 }
@@ -368,7 +367,7 @@ pub enum HostOp {
     PageSize,
     CurrentMemory,
     GrowMemory,
-    HasFeature
+    HasFeature,
 }
 
 impl From<HostOp> for ffi::BinaryenOp {
@@ -403,7 +402,7 @@ impl<'a> Segment<'a> {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]
-pub enum BinaryOp {
+pub enum UnaryOp {
     ClzI32,
     CtzI32,
     PopcntI32,
@@ -451,6 +450,67 @@ pub enum BinaryOp {
     DemoteF64,
     ReinterpretI32,
     ReinterpretI64,
+}
+
+impl From<UnaryOp> for ffi::BinaryenOp {
+    fn from(unop: UnaryOp) -> ffi::BinaryenOp {
+        use UnaryOp::*;
+        unsafe {
+            match unop {
+                ClzI32 => ffi::BinaryenClzInt32(),
+                CtzI32 => ffi::BinaryenCtzInt32(),
+                PopcntI32 => ffi::BinaryenPopcntInt32(),
+                NegF32 => ffi::BinaryenNegFloat32(),
+                AbsF32 => ffi::BinaryenAbsFloat32(),
+                CeilF32 => ffi::BinaryenCeilFloat32(),
+                FloorF32 => ffi::BinaryenFloorFloat32(),
+                TruncF32 => ffi::BinaryenTruncFloat32(),
+                NearestF32 => ffi::BinaryenNearestFloat32(),
+                SqrtF32 => ffi::BinaryenSqrtFloat32(),
+                EqZI32 => ffi::BinaryenEqZInt32(),
+                ClzI64 => ffi::BinaryenClzInt64(),
+                CtzI64 => ffi::BinaryenCtzInt64(),
+                PopcntI64 => ffi::BinaryenPopcntInt64(),
+                NegF64 => ffi::BinaryenNegFloat64(),
+                AbsF64 => ffi::BinaryenAbsFloat64(),
+                CeilF64 => ffi::BinaryenCeilFloat64(),
+                FloorF64 => ffi::BinaryenFloorFloat64(),
+                TruncF64 => ffi::BinaryenTruncFloat64(),
+                NearestF64 => ffi::BinaryenNearestFloat64(),
+                SqrtF64 => ffi::BinaryenSqrtFloat64(),
+                EqZI64 => ffi::BinaryenEqZInt64(),
+                ExtendSI32 => ffi::BinaryenExtendSInt32(),
+                ExtendUI32 => ffi::BinaryenExtendUInt32(),
+                WrapI64 => ffi::BinaryenWrapInt64(),
+                TruncSF32ToI32 => ffi::BinaryenTruncSFloat32ToInt32(),
+                TruncSF32ToI64 => ffi::BinaryenTruncSFloat32ToInt64(),
+                TruncUF32ToI32 => ffi::BinaryenTruncUFloat32ToInt32(),
+                TruncUF32ToI64 => ffi::BinaryenTruncUFloat32ToInt64(),
+                TruncSF64ToI32 => ffi::BinaryenTruncSFloat64ToInt32(),
+                TruncSF64ToI64 => ffi::BinaryenTruncSFloat64ToInt64(),
+                TruncUF64ToI32 => ffi::BinaryenTruncUFloat64ToInt32(),
+                TruncUF64ToI64 => ffi::BinaryenTruncUFloat64ToInt64(),
+                ReinterpretF32 => ffi::BinaryenReinterpretFloat32(),
+                ReinterpretF64 => ffi::BinaryenReinterpretFloat64(),
+                ConvertSI32ToF32 => ffi::BinaryenConvertSInt32ToFloat32(),
+                ConvertSI32ToF64 => ffi::BinaryenConvertSInt32ToFloat64(),
+                ConvertUI32ToF32 => ffi::BinaryenConvertUInt32ToFloat32(),
+                ConvertUI32ToF64 => ffi::BinaryenConvertUInt32ToFloat64(),
+                ConvertSI64ToF32 => ffi::BinaryenConvertSInt64ToFloat32(),
+                ConvertSI64ToF64 => ffi::BinaryenConvertSInt64ToFloat64(),
+                ConvertUI64ToF32 => ffi::BinaryenConvertUInt64ToFloat32(),
+                ConvertUI64ToF64 => ffi::BinaryenConvertUInt64ToFloat64(),
+                PromoteF32 => ffi::BinaryenPromoteFloat32(),
+                DemoteF64 => ffi::BinaryenDemoteFloat64(),
+                ReinterpretI32 => ffi::BinaryenReinterpretInt32(),
+                ReinterpretI64 => ffi::BinaryenReinterpretInt64(),
+            }
+        }
+    }
+}
+
+#[derive(Copy, Clone, PartialEq, Eq)]
+pub enum BinaryOp {
     AddI32,
     SubI32,
     MulI32,
@@ -534,53 +594,6 @@ impl From<BinaryOp> for ffi::BinaryenOp {
         use BinaryOp::*;
         unsafe {
             match binop {
-                ClzI32 => ffi::BinaryenClzInt32(),
-                CtzI32 => ffi::BinaryenCtzInt32(),
-                PopcntI32 => ffi::BinaryenPopcntInt32(),
-                NegF32 => ffi::BinaryenNegFloat32(),
-                AbsF32 => ffi::BinaryenAbsFloat32(),
-                CeilF32 => ffi::BinaryenCeilFloat32(),
-                FloorF32 => ffi::BinaryenFloorFloat32(),
-                TruncF32 => ffi::BinaryenTruncFloat32(),
-                NearestF32 => ffi::BinaryenNearestFloat32(),
-                SqrtF32 => ffi::BinaryenSqrtFloat32(),
-                EqZI32 => ffi::BinaryenEqZInt32(),
-                ClzI64 => ffi::BinaryenClzInt64(),
-                CtzI64 => ffi::BinaryenCtzInt64(),
-                PopcntI64 => ffi::BinaryenPopcntInt64(),
-                NegF64 => ffi::BinaryenNegFloat64(),
-                AbsF64 => ffi::BinaryenAbsFloat64(),
-                CeilF64 => ffi::BinaryenCeilFloat64(),
-                FloorF64 => ffi::BinaryenFloorFloat64(),
-                TruncF64 => ffi::BinaryenTruncFloat64(),
-                NearestF64 => ffi::BinaryenNearestFloat64(),
-                SqrtF64 => ffi::BinaryenSqrtFloat64(),
-                EqZI64 => ffi::BinaryenEqZInt64(),
-                ExtendSI32 => ffi::BinaryenExtendSInt32(),
-                ExtendUI32 => ffi::BinaryenExtendUInt32(),
-                WrapI64 => ffi::BinaryenWrapInt64(),
-                TruncSF32ToI32 => ffi::BinaryenTruncSFloat32ToInt32(),
-                TruncSF32ToI64 => ffi::BinaryenTruncSFloat32ToInt64(),
-                TruncUF32ToI32 => ffi::BinaryenTruncUFloat32ToInt32(),
-                TruncUF32ToI64 => ffi::BinaryenTruncUFloat32ToInt64(),
-                TruncSF64ToI32 => ffi::BinaryenTruncSFloat64ToInt32(),
-                TruncSF64ToI64 => ffi::BinaryenTruncSFloat64ToInt64(),
-                TruncUF64ToI32 => ffi::BinaryenTruncUFloat64ToInt32(),
-                TruncUF64ToI64 => ffi::BinaryenTruncUFloat64ToInt64(),
-                ReinterpretF32 => ffi::BinaryenReinterpretFloat32(),
-                ReinterpretF64 => ffi::BinaryenReinterpretFloat64(),
-                ConvertSI32ToF32 => ffi::BinaryenConvertSInt32ToFloat32(),
-                ConvertSI32ToF64 => ffi::BinaryenConvertSInt32ToFloat64(),
-                ConvertUI32ToF32 => ffi::BinaryenConvertUInt32ToFloat32(),
-                ConvertUI32ToF64 => ffi::BinaryenConvertUInt32ToFloat64(),
-                ConvertSI64ToF32 => ffi::BinaryenConvertSInt64ToFloat32(),
-                ConvertSI64ToF64 => ffi::BinaryenConvertSInt64ToFloat64(),
-                ConvertUI64ToF32 => ffi::BinaryenConvertUInt64ToFloat32(),
-                ConvertUI64ToF64 => ffi::BinaryenConvertUInt64ToFloat64(),
-                PromoteF32 => ffi::BinaryenPromoteFloat32(),
-                DemoteF64 => ffi::BinaryenDemoteFloat64(),
-                ReinterpretI32 => ffi::BinaryenReinterpretInt32(),
-                ReinterpretI64 => ffi::BinaryenReinterpretInt64(),
                 AddI32 => ffi::BinaryenAddInt32(),
                 SubI32 => ffi::BinaryenSubInt32(),
                 MulI32 => ffi::BinaryenMulInt32(),
@@ -661,8 +674,6 @@ impl From<BinaryOp> for ffi::BinaryenOp {
         }
     }
 }
-
-// TODO: Host
 
 pub struct FnType {
     raw: ffi::BinaryenFunctionTypeRef,
