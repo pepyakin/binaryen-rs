@@ -2,6 +2,9 @@
 name = "binaryen-sys"
 version = "0.1.0"
 authors = ["Sergey Pepyakin <s.pepyakin@gmail.com>"]
+exclude = [
+    "binaryen/test/*"
+]
 
 [build-dependencies]
 bindgen = "*"
