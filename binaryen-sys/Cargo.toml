@@ -1,11 +1,17 @@
 [package]
+
 name = "binaryen-sys"
 version = "0.1.0"
 authors = ["Sergey Pepyakin <s.pepyakin@gmail.com>"]
+license = "Apache-2.0"
+repository = "https://github.com/pepyakin/binaryen-rs"
+homepage = "https://github.com/pepyakin/binaryen-rs"
+description = "Bindings to the binaryen library"
+categories = ["external-ffi-bindings"]
 exclude = [
     "binaryen/test/*"
 ]
 
 [build-dependencies]
-bindgen = "*"
-cmake = "*"
+bindgen = "0.30.0"
+cmake = "0.1.25"
