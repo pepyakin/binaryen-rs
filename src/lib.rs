@@ -188,6 +188,18 @@ impl Module {
         }
     }
 
+    pub fn add_export(&self, internal_name: &Name, external_name: &Name) {
+        let internal_name_ptr = internal_name.as_ptr();
+        let external_name_ptr = external_name.as_ptr();
+        unsafe {
+            ffi::BinaryenAddExport(
+                self.inner.raw,
+                internal_name_ptr,
+                external_name_ptr
+            );
+        }
+    }
+
     // TODO: undefined ty?
     // https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h#L272
     pub fn block(&self, name: Option<&Name>, children: &[Expr], ty: Ty) -> Expr {
