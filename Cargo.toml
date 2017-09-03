@@ -4,7 +4,12 @@ name = "binaryen"
 version = "0.1.0"
 authors = ["Sergey Pepyakin <s.pepyakin@gmail.com>"]
 license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/pepyakin/binaryen-rs"
+homepage = "https://github.com/pepyakin/binaryen-rs"
+description = "Bindings to the binaryen library"
+categories = ["api-bindings", "emulators"]
+keywords = ["binaryen", "webassembly", "wasm", "compiler"]
 
 [dependencies]
 binaryen-sys = { path = "binaryen-sys", version = "0.1.0" }
-
