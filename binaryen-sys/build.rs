@@ -8,6 +8,8 @@ use std::process::Command;
 fn gen_bindings() {
     let bindings = bindgen::Builder::default()
         .header("wrapper.h")
+        // See https://github.com/rust-lang-nursery/rust-bindgen/issues/947
+        .trust_clang_mangling(false)
         .generate_comments(true)
         .generate()
         .expect("Unable to generate bindings");
@@ -26,6 +28,22 @@ fn main() {
     }
 
     gen_bindings();
+
+    if env::var("TARGET").ok().map_or(false, |target| target.contains("emscripten")) {
+        let mut build_wasm_binaryen_args = vec![];
+        if get_debug() {
+            build_wasm_binaryen_args.push("-g");
+        }
+
+        let _ = Command::new("./build-binaryen-bc.sh")
+            .args(&build_wasm_binaryen_args)
+            .status();
+
+        let current_dir = env::current_dir().unwrap();
+        println!("cargo:rustc-link-search=native={}", current_dir.to_str().unwrap());
+        println!("cargo:rustc-link-lib=static=binaryen-c");
+        return;
+    }
 
     let dst = cmake::Config::new("binaryen")
         .define("BUILD_STATIC_LIB", "ON")
@@ -62,4 +80,12 @@ fn get_cpp_stdlib() -> Option<String> {
             Some("stdc++".to_string())
         }
     })
+}
+
+// See https://github.com/alexcrichton/gcc-rs/blob/10871a0e40/src/lib.rs#L1501
+fn get_debug() -> bool {
+    match env::var("DEBUG").ok() {
+        Some(s) => s != "false",
+        None => false,
+    }
 }
