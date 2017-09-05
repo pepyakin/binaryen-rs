@@ -379,7 +379,7 @@ impl Module {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum HostOp {
     PageSize,
     CurrentMemory,
@@ -418,7 +418,7 @@ impl<'a> Segment<'a> {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum UnaryOp {
     ClzI32,
     CtzI32,
@@ -526,7 +526,7 @@ impl From<UnaryOp> for ffi::BinaryenOp {
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum BinaryOp {
     AddI32,
     SubI32,
