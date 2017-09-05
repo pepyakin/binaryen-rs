@@ -8,7 +8,7 @@ readme = "README.md"
 repository = "https://github.com/pepyakin/binaryen-rs"
 homepage = "https://github.com/pepyakin/binaryen-rs"
 description = "Bindings to the binaryen library"
-categories = ["api-bindings", "emulators"]
+categories = ["api-bindings"]
 keywords = ["binaryen", "webassembly", "wasm", "compiler"]
 
 [dependencies]
