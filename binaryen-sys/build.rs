@@ -11,6 +11,8 @@ fn gen_bindings() {
         // See https://github.com/rust-lang-nursery/rust-bindgen/issues/947
         .trust_clang_mangling(false)
         .generate_comments(true)
+        // https://github.com/rust-lang-nursery/rust-bindgen/issues/947#issuecomment-327100002
+        .layout_tests(false)
         .generate()
         .expect("Unable to generate bindings");
 
