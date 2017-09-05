@@ -116,6 +116,10 @@ impl Module {
         }
     }
 
+    pub fn relooper(&self) -> Relooper {
+        Relooper::new(Rc::clone(&self.inner))
+    }
+
     pub fn add_fn_type(&self, name: Option<&Name>, param_tys: &[ValueTy], result_ty: Ty) -> FnType {
         let name_ptr = name.map_or(ptr::null(), |n| n.as_ptr());
         let raw = unsafe {
@@ -785,30 +789,35 @@ pub struct RelooperBlockId(usize);
 pub struct Relooper {
     raw: ffi::RelooperRef,
     blocks: Vec<ffi::RelooperBlockRef>,
+    module_ref: Rc<InnerModule>,
 }
 
 impl Relooper {
-    pub fn new() -> Relooper {
+    fn new(module_ref: Rc<InnerModule>) -> Relooper {
         Relooper {
             raw: unsafe { ffi::RelooperCreate() },
             blocks: Vec::new(),
+            module_ref
         }
     }
 
     pub fn add_block(&mut self, expr: Expr) -> RelooperBlockId {
+        debug_assert!(Rc::ptr_eq(&self.module_ref, &expr._module_ref));
         let raw = unsafe { ffi::RelooperAddBlock(self.raw, expr.raw) };
         let index = self.blocks.len();
         self.blocks.push(raw);
-
         RelooperBlockId(index)
     }
 
-    pub fn render(self, module: &Module, entry_id: RelooperBlockId, label_helper: u32) -> Expr {
+    pub fn render(self, entry_id: RelooperBlockId, label_helper: u32) -> Expr {
         let entry = self.blocks[entry_id.0];
         let raw = unsafe {
-            ffi::RelooperRenderAndDispose(self.raw, entry, label_helper as _, module.inner.raw)
+            ffi::RelooperRenderAndDispose(self.raw, entry, label_helper as _, self.module_ref.raw)
         };
-        Expr::from_raw(module, raw)
+        Expr {
+            _module_ref: self.module_ref.clone(), 
+            raw
+        }
     }
 
     pub fn add_branch(
@@ -818,6 +827,9 @@ impl Relooper {
         condition: Option<Expr>,
         code: Option<Expr>,
     ) {
+        debug_assert!(condition.as_ref().map_or(true, |e| { Rc::ptr_eq(&self.module_ref, &e._module_ref) } ));
+        debug_assert!(code.as_ref().map_or(true, |e| { Rc::ptr_eq(&self.module_ref, &e._module_ref) } ));
+
         let from_block = self.blocks[from.0];
         let to_block = self.blocks[to.0];
 
@@ -829,10 +841,17 @@ impl Relooper {
     }
 }
 
-impl Default for Relooper {
-    fn default() -> Relooper {
-        Relooper::new()
-    }
+#[should_panic]
+#[test]
+fn test_relooper_holds_module() {
+    let module1 = Module::new();
+    let mut relooper = module1.relooper();
+
+    let first_block = {
+        let module2 = Module::new();
+        // Should panic here.
+        relooper.add_block(module2.nop())
+    };
 }
 
 // see https://github.com/WebAssembly/binaryen/blob/master/test/example/c-api-hello-world.c
