@@ -6,6 +6,11 @@ cd binaryen
 
 echo "Building binaryen LLVM BC"
 
+if [ -z $OUT_DIR ]; then
+  echo "$0: OUT_DIR environment variable should be set"
+  exit 1
+fi
+
 if [ -z $EMSCRIPTEN ]; then
   if (which emcc >/dev/null); then
     # Found emcc in PATH -- set EMSCRIPTEN (we need this to access webidl_binder.py)
@@ -22,7 +27,6 @@ fi
 EMCC_ARGS="-std=c++11 --memory-init-file 0"
 EMCC_ARGS="$EMCC_ARGS -s ALLOW_MEMORY_GROWTH=1"
 EMCC_ARGS="$EMCC_ARGS -s DISABLE_EXCEPTION_CATCHING=0" # Exceptions are thrown and caught when optimizing endless loops
-OUT_FILE_SUFFIX=
 
 "$EMSCRIPTEN/em++" \
   $EMCC_ARGS \
@@ -84,7 +88,6 @@ OUT_FILE_SUFFIX=
   src/wasm/literal.cpp \
   src/cfg/Relooper.cpp \
   -Isrc/ \
-  -o binaryen-c.bc
+  -o $OUT_DIR/binaryen-c.bc
 
-emar cr libbinaryen-c.a binaryen-c.bc
-mv libbinaryen-c.a ..
+emar cr $OUT_DIR/libbinaryen-c.a $OUT_DIR/binaryen-c.bc

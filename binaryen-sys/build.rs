@@ -31,7 +31,8 @@ fn main() {
 
     gen_bindings();
 
-    if env::var("TARGET").ok().map_or(false, |target| target.contains("emscripten")) {
+    let target = env::var("TARGET").ok();
+    if target.map_or(false, |target| target.contains("emscripten")) {
         let mut build_wasm_binaryen_args = vec![];
         if get_debug() {
             build_wasm_binaryen_args.push("-g");
@@ -39,10 +40,11 @@ fn main() {
 
         let _ = Command::new("./build-binaryen-bc.sh")
             .args(&build_wasm_binaryen_args)
-            .status();
+            .status()
+            .unwrap();
 
-        let current_dir = env::current_dir().unwrap();
-        println!("cargo:rustc-link-search=native={}", current_dir.to_str().unwrap());
+        
+        println!("cargo:rustc-link-search=native={}", env::var("OUT_DIR").unwrap());
         println!("cargo:rustc-link-lib=static=binaryen-c");
         return;
     }
