@@ -92,7 +92,7 @@ impl Module {
         initial: u32,
         maximal: u32,
         name: Option<&Name>,
-        segments: &[Segment],
+        segments: Vec<Segment>,
     ) {
         let name_ptr = name.map_or(ptr::null(), |n| n.as_ptr());
         let mut segment_datas: Vec<_> = segments.iter().map(|s| s.data.as_ptr()).collect();
@@ -101,7 +101,7 @@ impl Module {
 
         unsafe {
             let mut segment_offsets: Vec<_> =
-                segments.iter().map(|s| s.offset_expr.to_raw()).collect();
+                segments.into_iter().map(|s| s.offset_expr.into_raw()).collect();
 
             ffi::BinaryenSetMemory(
                 self.inner.raw,
@@ -153,7 +153,7 @@ impl Module {
                 fn_ty.raw,
                 var_tys_raw.as_mut_ptr(),
                 var_tys_raw.len() as _,
-                body.to_raw(),
+                body.into_raw(),
             )
         };
         FnRef { inner }
@@ -167,7 +167,7 @@ impl Module {
                 name_ptr,
                 ty.into(),
                 mutable as c_int,
-                init.to_raw(),
+                init.into_raw(),
             );
         }
     }
@@ -207,11 +207,11 @@ impl Module {
 
     // TODO: undefined ty?
     // https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h#L272
-    pub fn block(&self, name: Option<&Name>, children: &[Expr], ty: Ty) -> Expr {
+    pub fn block(&self, name: Option<&Name>, children: Vec<Expr>, ty: Ty) -> Expr {
         let name_ptr = name.map_or(ptr::null(), |n| n.as_ptr());
 
         let raw_expr = unsafe {
-            let mut children_raw: Vec<_> = children.iter().map(|ty| ty.to_raw()).collect();
+            let mut children_raw: Vec<_> = children.into_iter().map(|ty| ty.into_raw()).collect();
             ffi::BinaryenBlock(
                 self.inner.raw,
                 name_ptr,
@@ -245,7 +245,7 @@ impl Module {
                 offset,
                 align,
                 ty.into(),
-                ptr.to_raw(),
+                ptr.into_raw(),
             )
         };
         Expr::from_raw(self, raw_expr)
@@ -266,8 +266,8 @@ impl Module {
                 bytes,
                 offset,
                 align,
-                ptr.to_raw(),
-                value.to_raw(),
+                ptr.into_raw(),
+                value.into_raw(),
                 ty.into(),
             )
         };
@@ -284,7 +284,7 @@ impl Module {
     pub fn set_global(&self, name: &Name, value: Expr) -> Expr {
         let global_name_ptr = name.as_ptr();
         let raw_expr =
-            unsafe { ffi::BinaryenSetGlobal(self.inner.raw, global_name_ptr, value.to_raw()) };
+            unsafe { ffi::BinaryenSetGlobal(self.inner.raw, global_name_ptr, value.into_raw()) };
         Expr::from_raw(self, raw_expr)
     }
 
@@ -297,30 +297,30 @@ impl Module {
 
     pub fn set_local(&self, index: u32, value: Expr) -> Expr {
         let raw_expr = unsafe {
-            ffi::BinaryenSetLocal(self.inner.raw, index as ffi::BinaryenIndex, value.to_raw())
+            ffi::BinaryenSetLocal(self.inner.raw, index as ffi::BinaryenIndex, value.into_raw())
         };
         Expr::from_raw(self, raw_expr)
     }
 
     pub fn tee_local(&self, index: u32, value: Expr) -> Expr {
         let raw_expr = unsafe {
-            ffi::BinaryenTeeLocal(self.inner.raw, index as ffi::BinaryenIndex, value.to_raw())
+            ffi::BinaryenTeeLocal(self.inner.raw, index as ffi::BinaryenIndex, value.into_raw())
         };
         Expr::from_raw(self, raw_expr)
     }
 
     pub fn ret(&self, value: Option<Expr>) -> Expr {
         let raw_expr = unsafe {
-            let raw_value = value.map_or(ptr::null_mut(), |v| v.to_raw());
+            let raw_value = value.map_or(ptr::null_mut(), |v| v.into_raw());
             ffi::BinaryenReturn(self.inner.raw, raw_value)
         };
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call(&self, name: &Name, operands: &[Expr]) -> Expr {
+    pub fn call(&self, name: &Name, operands: Vec<Expr>) -> Expr {
         let name_ptr = name.as_ptr();
         let raw_expr = unsafe {
-            let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
+            let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.into_raw()).collect();
             ffi::BinaryenCall(
                 self.inner.raw,
                 name_ptr,
@@ -332,10 +332,10 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call_import(&self, name: &Name, operands: &[Expr], ty: Ty) -> Expr {
+    pub fn call_import(&self, name: &Name, operands: Vec<Expr>, ty: Ty) -> Expr {
         let name_ptr = name.as_ptr();
         let raw_expr = unsafe {
-            let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
+            let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.into_raw()).collect();
             ffi::BinaryenCallImport(
                 self.inner.raw,
                 name_ptr,
@@ -349,19 +349,19 @@ impl Module {
 
     pub fn binary(&self, op: BinaryOp, lhs: Expr, rhs: Expr) -> Expr {
         let raw_expr =
-            unsafe { ffi::BinaryenBinary(self.inner.raw, op.into(), lhs.to_raw(), rhs.to_raw()) };
+            unsafe { ffi::BinaryenBinary(self.inner.raw, op.into(), lhs.into_raw(), rhs.into_raw()) };
         Expr::from_raw(self, raw_expr)
     }
 
     pub fn unary(&self, op: UnaryOp, val: Expr) -> Expr {
-        let raw_expr = unsafe { ffi::BinaryenUnary(self.inner.raw, op.into(), val.to_raw()) };
+        let raw_expr = unsafe { ffi::BinaryenUnary(self.inner.raw, op.into(), val.into_raw()) };
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn host(&self, op: HostOp, name: Option<&Name>, operands: &[Expr]) -> Expr {
+    pub fn host(&self, op: HostOp, name: Option<&Name>, operands: Vec<Expr>) -> Expr {
         let name_ptr = name.map_or(ptr::null(), |n| n.as_ptr());
         let raw_expr = unsafe {
-            let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
+            let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.into_raw()).collect();
             ffi::BinaryenHost(
                 self.inner.raw,
                 op.into(),
@@ -757,7 +757,7 @@ impl Expr {
         }
     }
 
-    pub unsafe fn to_raw(&self) -> ffi::BinaryenExpressionRef {
+    pub unsafe fn into_raw(self) -> ffi::BinaryenExpressionRef {
         self.raw
     }
 }
@@ -847,11 +847,9 @@ fn test_relooper_holds_module() {
     let module1 = Module::new();
     let mut relooper = module1.relooper();
 
-    let first_block = {
-        let module2 = Module::new();
-        // Should panic here.
-        relooper.add_block(module2.nop())
-    };
+    let module2 = Module::new();
+    // Should panic here.
+    relooper.add_block(module2.nop());
 }
 
 // see https://github.com/WebAssembly/binaryen/blob/master/test/example/c-api-hello-world.c
@@ -880,7 +878,7 @@ fn test_simple() {
     {
         let segment_data = b"Hello world\0";
         let segment_offset_expr = module.const_(Literal::I32(0));
-        let segments = &[Segment::new(segment_data, segment_offset_expr)];
+        let segments = vec![Segment::new(segment_data, segment_offset_expr)];
         module.set_memory(1, 1, Some(&"mem".into()), segments);
     }
 
