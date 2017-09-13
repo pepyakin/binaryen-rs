@@ -32,7 +32,7 @@ impl Module {
     pub fn read(wasm_buf: &[u8]) -> Module {
         let raw =
             unsafe { ffi::BinaryenModuleRead(wasm_buf.as_ptr() as *mut c_char, wasm_buf.len()) };
-        Self::from_raw(raw)
+        Module::from_raw(raw)
     }
 
     pub fn from_raw(raw: ffi::BinaryenModuleRef) -> Module {
