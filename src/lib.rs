@@ -700,8 +700,8 @@ pub struct FnRef {
     inner: ffi::BinaryenFunctionRef,
 }
 
-/// Type of the values. These can be found on the stack and
-/// in the local vars.
+/// Type of the values. For example, these can be found on a stack and
+/// in local vars.
 #[derive(Copy, Clone)]
 pub enum ValueTy {
     I32,
