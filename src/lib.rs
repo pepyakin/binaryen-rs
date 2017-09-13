@@ -841,17 +841,6 @@ impl Relooper {
     }
 }
 
-#[should_panic]
-#[test]
-fn test_relooper_holds_module() {
-    let module1 = Module::new();
-    let mut relooper = module1.relooper();
-
-    let module2 = Module::new();
-    // Should panic here.
-    relooper.add_block(module2.nop());
-}
-
 // see https://github.com/WebAssembly/binaryen/blob/master/test/example/c-api-hello-world.c
 #[test]
 fn test_hello_world() {
@@ -891,4 +880,24 @@ fn test_simple() {
     let written_wasm = module.write();
     let read_wasm = Module::read(&written_wasm);
     assert!(read_wasm.is_valid());
+}
+
+#[should_panic]
+#[test]
+fn test_relooper_with_different_module() {
+    let module1 = Module::new();
+    let mut relooper = module1.relooper();
+
+    let module2 = Module::new();
+    // Should panic here.
+    relooper.add_block(module2.nop());
+}
+
+#[test]
+fn test_use_same_expr_twice() {
+    let module = Module::new();
+    let expr = module.nop();
+    let expr_copy = Expr::from_raw(&module, expr.raw);
+    
+    module.block(None, vec![expr, expr_copy], Ty::none());
 }
