@@ -75,8 +75,11 @@ impl Module {
         const MAX_CAPACITY: usize = 1024 * 1024 * 2;
         let mut buf: Vec<u8> = Vec::with_capacity(MAX_CAPACITY);
         unsafe {
-            let written =
-                ffi::BinaryenModuleWrite(self.inner.raw, buf.as_mut_ptr() as *mut c_char, MAX_CAPACITY);
+            let written = ffi::BinaryenModuleWrite(
+                self.inner.raw,
+                buf.as_mut_ptr() as *mut c_char,
+                MAX_CAPACITY,
+            );
             if written == buf.capacity() {
                 // TODO:
                 panic!("unimplemented");
@@ -197,11 +200,7 @@ impl Module {
         let internal_name_ptr = internal_name.as_ptr();
         let external_name_ptr = external_name.as_ptr();
         unsafe {
-            ffi::BinaryenAddExport(
-                self.inner.raw,
-                internal_name_ptr,
-                external_name_ptr
-            );
+            ffi::BinaryenAddExport(self.inner.raw, internal_name_ptr, external_name_ptr);
         }
     }
 
@@ -798,7 +797,7 @@ impl Relooper {
         Relooper {
             raw: unsafe { ffi::RelooperCreate() },
             blocks: Vec::new(),
-            module_ref
+            module_ref,
         }
     }
 
@@ -816,8 +815,8 @@ impl Relooper {
             ffi::RelooperRenderAndDispose(self.raw, entry, label_helper as _, self.module_ref.raw)
         };
         Expr {
-            _module_ref: self.module_ref.clone(), 
-            raw
+            _module_ref: self.module_ref.clone(),
+            raw,
         }
     }
 
@@ -828,8 +827,15 @@ impl Relooper {
         condition: Option<Expr>,
         code: Option<Expr>,
     ) {
-        debug_assert!(condition.as_ref().map_or(true, |e| { Rc::ptr_eq(&self.module_ref, &e._module_ref) } ));
-        debug_assert!(code.as_ref().map_or(true, |e| { Rc::ptr_eq(&self.module_ref, &e._module_ref) } ));
+        debug_assert!(
+            condition
+                .as_ref()
+                .map_or(true, |e| { Rc::ptr_eq(&self.module_ref, &e._module_ref) })
+        );
+        debug_assert!(
+            code.as_ref()
+                .map_or(true, |e| { Rc::ptr_eq(&self.module_ref, &e._module_ref) })
+        );
 
         let from_block = self.blocks[from.0];
         let to_block = self.blocks[to.0];
@@ -899,6 +905,6 @@ fn test_use_same_expr_twice() {
     let module = Module::new();
     let expr = module.nop();
     let expr_copy = Expr::from_raw(&module, expr.raw);
-    
+
     module.block(None, &[expr, expr_copy], Ty::none());
 }
