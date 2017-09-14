@@ -334,6 +334,21 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
+    pub fn call_indirect(&self, target: Expr, operands: &[Expr], ty: &Name) -> Expr {
+        let raw_expr = unsafe {
+            let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
+            let ty_ptr = ty.as_ptr();
+            ffi::BinaryenCallIndirect(
+                self.inner.raw,
+                target.to_raw(),
+                operands_raw.as_mut_ptr(),
+                operands_raw.len() as _,
+                ty_ptr
+            )
+        };
+        Expr::from_raw(self, raw_expr)
+    }
+
     pub fn call_import(&self, name: &Name, operands: &[Expr], ty: Ty) -> Expr {
         let name_ptr = name.as_ptr();
         let raw_expr = unsafe {
@@ -377,6 +392,11 @@ impl Module {
 
     pub fn nop(&self) -> Expr {
         let raw_expr = unsafe { ffi::BinaryenNop(self.inner.raw) };
+        Expr::from_raw(self, raw_expr)
+    }
+
+    pub fn unreachable(&self) -> Expr {
+        let raw_expr = unsafe { ffi::BinaryenUnreachable(self.inner.raw) };
         Expr::from_raw(self, raw_expr)
     }
 }
@@ -845,4 +865,23 @@ fn test_use_same_expr_twice() {
     let expr_copy = Expr::from_raw(&module, expr.raw);
 
     module.block(None, &[expr, expr_copy], Ty::none());
+}
+
+#[test]
+fn test_unreachable() {
+    let module = Module::new();
+
+    let params = &[];
+    let return_i32 = module.add_fn_type(None, params, Ty::value(ValueTy::I32));
+    let _ = module.add_fn_type(Some(&"return_i64".into()), params, Ty::value(ValueTy::I64));
+
+    let unreachable = module.unreachable();
+
+    let add = module.call_indirect(unreachable, &[], &"return_i64".into());
+
+    let _test = module.add_fn(&"test".into(), &return_i32, &[], add);
+
+    assert!(module.is_valid());
+    module.print();
+    panic!();
 }
