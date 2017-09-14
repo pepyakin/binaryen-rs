@@ -189,7 +189,7 @@ impl Module {
         }
     }
 
-    pub fn add_import<P1, N1: ToCStr<P1>, P2, N2: ToCStr<N2>, P3, N3: ToCStr<P3>>(
+    pub fn add_import<P1, N1: ToCStr<P1>, P2, N2: ToCStr<P2>, P3, N3: ToCStr<P3>>(
         &self,
         internal_name: N1,
         external_module_name: N2,
@@ -210,7 +210,7 @@ impl Module {
         }
     }
 
-    pub fn add_export<P1, N1: ToCStr<P1>, P2, N2: ToCStr<N2>>(
+    pub fn add_export<P1, N1: ToCStr<P1>, P2, N2: ToCStr<P2>>(
         &self,
         internal_name: N1,
         external_name: N2,
