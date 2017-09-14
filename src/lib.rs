@@ -328,7 +328,7 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn ret(&self, value: Option<Expr>) -> Expr {
+    pub fn return_(&self, value: Option<Expr>) -> Expr {
         let raw_expr = unsafe {
             let raw_value = value.map_or(ptr::null_mut(), |v| v.to_raw());
             ffi::BinaryenReturn(self.inner.raw, raw_value)
