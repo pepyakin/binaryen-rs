@@ -253,6 +253,34 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
+    pub fn switch<P1, N1: ToCStr<P1>, P2, N2: ToCStr<P2>>(
+        &self,
+        names: Vec<N1>,
+        default_name: N2,
+        condition: Expr,
+        value: Option<Expr>,
+    ) -> Expr {
+        let default_name = default_name.to_cstr_stash();
+        let raw_expr = unsafe {
+            let (_storage, mut name_ptrs): (Vec<_>, Vec<_>) = names
+                .into_iter()
+                .map(|x| x.to_cstr_stash())
+                .map(|Stash { storage, ptr }| (storage, ptr))
+                .unzip();
+            let raw_condition = condition.to_raw();
+            let raw_value = value.map_or(ptr::null_mut(), |v| v.to_raw());
+            ffi::BinaryenSwitch(
+                self.inner.raw,
+                name_ptrs.as_mut_ptr(),
+                name_ptrs.len() as _,
+                default_name.as_ptr(),
+                raw_condition,
+                raw_value
+            )
+        };
+        Expr::from_raw(self, raw_expr)
+    }
+
     // TODO: undefined ty?
     // https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h#L272
     pub fn block<P, N: ToCStr<P>>(&self, name: Option<N>, children: &[Expr], ty: Ty) -> Expr {

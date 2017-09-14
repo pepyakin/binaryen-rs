@@ -3,8 +3,8 @@ use std::ptr;
 use std::os::raw::c_char;
 
 pub struct Stash<T> {
-    storage: T,
-    ptr: *const c_char,
+    pub storage: T,
+    pub ptr: *const c_char,
 }
 
 impl<T> Stash<T> {
