@@ -885,6 +885,12 @@ impl Expr {
     pub unsafe fn to_raw(&self) -> ffi::BinaryenExpressionRef {
         self.raw
     }
+
+    pub fn print(&self) {
+        unsafe {
+            ffi::BinaryenExpressionPrint(self.raw)
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
