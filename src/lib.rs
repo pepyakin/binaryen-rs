@@ -243,6 +243,16 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
+    pub fn break_<P, N: ToCStr<P>>(&self, name: N, condition: Option<Expr>, value: Option<Expr>) -> Expr {
+        let name = name.to_cstr_stash();
+        let raw_expr = unsafe {
+            let raw_condition = condition.map_or(ptr::null_mut(), |v| v.to_raw());
+            let raw_value = value.map_or(ptr::null_mut(), |v| v.to_raw());
+            ffi::BinaryenBreak(self.inner.raw, name.as_ptr(), raw_condition, raw_value)
+        };
+        Expr::from_raw(self, raw_expr)
+    }
+
     // TODO: undefined ty?
     // https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h#L272
     pub fn block<P, N: ToCStr<P>>(&self, name: Option<N>, children: &[Expr], ty: Ty) -> Expr {
