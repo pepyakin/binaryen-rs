@@ -398,6 +398,11 @@ impl Module {
         let raw_expr = unsafe { ffi::BinaryenUnreachable(self.inner.raw) };
         Expr::from_raw(self, raw_expr)
     }
+
+    pub fn drop(&self, value: Expr) -> Expr {
+        let raw_expr = unsafe { ffi::BinaryenDrop(self.inner.raw, value.to_raw()) };
+        Expr::from_raw(self, raw_expr)
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
