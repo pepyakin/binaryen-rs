@@ -399,6 +399,18 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
+    pub fn select(&self, condition: Expr, if_true: Expr, if_false: Expr) -> Expr {
+        let raw_expr = unsafe {
+            ffi::BinaryenSelect(
+                self.inner.raw,
+                condition.to_raw(),
+                if_true.to_raw(),
+                if_false.to_raw(),
+            )
+        };
+        Expr::from_raw(self, raw_expr)
+    }
+
     pub fn drop(&self, value: Expr) -> Expr {
         let raw_expr = unsafe { ffi::BinaryenDrop(self.inner.raw, value.to_raw()) };
         Expr::from_raw(self, raw_expr)
