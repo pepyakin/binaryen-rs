@@ -6,10 +6,10 @@ use std::rc::Rc;
 use std::os::raw::{c_char, c_int};
 use std::ptr;
 
-mod name;
+mod to_cstr;
 mod relooper;
 
-use name::Name;
+use to_cstr::*;
 pub use relooper::*;
 
 struct InnerModule {
@@ -93,14 +93,14 @@ impl Module {
         buf
     }
 
-    pub fn set_memory(
+    pub fn set_memory<P, N: ToCStr<P>>(
         &self,
         initial: u32,
         maximal: u32,
-        name: Option<&Name>,
+        name: Option<N>,
         segments: &[Segment],
     ) {
-        let name_ptr = name.map_or(ptr::null(), |n| n.as_ptr());
+        let name = to_cstr_stash_option(name);
         let mut segment_datas: Vec<_> = segments.iter().map(|s| s.data.as_ptr()).collect();
         let mut segment_sizes: Vec<_> = segments.iter().map(|s| s.data.len() as u32).collect();
         let segments_count = segments.len();
@@ -113,7 +113,7 @@ impl Module {
                 self.inner.raw,
                 initial,
                 maximal,
-                name_ptr,
+                name.as_ptr(),
                 segment_datas.as_mut_ptr() as *mut *const c_char,
                 segment_offsets.as_mut_ptr(),
                 segment_sizes.as_mut_ptr(),
@@ -126,8 +126,8 @@ impl Module {
         Relooper::new(Rc::clone(&self.inner))
     }
 
-    pub fn add_fn_type(&self, name: Option<&Name>, param_tys: &[ValueTy], result_ty: Ty) -> FnType {
-        let name_ptr = name.map_or(ptr::null(), |n| n.as_ptr());
+    pub fn add_fn_type<P, N: ToCStr<P>>(&self, name: Option<N>, param_tys: &[ValueTy], result_ty: Ty) -> FnType {
+        let name = to_cstr_stash_option(name);
         let raw = unsafe {
             let mut param_tys_raw = param_tys
                 .iter()
@@ -136,7 +136,7 @@ impl Module {
                 .collect::<Vec<_>>();
             ffi::BinaryenAddFunctionType(
                 self.inner.raw,
-                name_ptr,
+                name.as_ptr(),
                 result_ty.into(),
                 param_tys_raw.as_mut_ptr(),
                 param_tys_raw.len() as _,
@@ -145,8 +145,8 @@ impl Module {
         FnType { raw }
     }
 
-    pub fn add_fn(&self, name: &Name, fn_ty: &FnType, var_tys: &[ValueTy], body: Expr) -> FnRef {
-        let name_ptr = name.as_ptr();
+    pub fn add_fn<P, N: ToCStr<P>>(&self, name: N, fn_ty: &FnType, var_tys: &[ValueTy], body: Expr) -> FnRef {
+        let name = name.to_cstr_stash();
         let inner = unsafe {
             let mut var_tys_raw = var_tys
                 .iter()
@@ -155,7 +155,7 @@ impl Module {
                 .collect::<Vec<_>>();
             ffi::BinaryenAddFunction(
                 self.inner.raw,
-                name_ptr,
+                name.as_ptr(),
                 fn_ty.raw,
                 var_tys_raw.as_mut_ptr(),
                 var_tys_raw.len() as _,
@@ -165,12 +165,12 @@ impl Module {
         FnRef { inner }
     }
 
-    pub fn add_global(&self, name: &Name, ty: ValueTy, mutable: bool, init: Expr) {
-        let name_ptr = name.as_ptr();
+    pub fn add_global<P, N: ToCStr<P>>(&self, name: N, ty: ValueTy, mutable: bool, init: Expr) {
+        let name = name.to_cstr_stash();
         unsafe {
             ffi::BinaryenAddGlobal(
                 self.inner.raw,
-                name_ptr,
+                name.as_ptr(),
                 ty.into(),
                 mutable as c_int,
                 init.to_raw(),
@@ -178,45 +178,44 @@ impl Module {
         }
     }
 
-    pub fn add_import(
+    pub fn add_import<P1, N1: ToCStr<P1>, P2, N2: ToCStr<N2>, P3, N3: ToCStr<P3>>(
         &self,
-        internal_name: &Name,
-        external_module_name: &Name,
-        external_base_name: &Name,
+        internal_name: N1,
+        external_module_name: N2,
+        external_base_name: N3,
         fn_ty: &FnType,
     ) {
-        let internal_name_ptr = internal_name.as_ptr();
-        let external_module_name_ptr = external_module_name.as_ptr();
-        let external_base_name_ptr = external_base_name.as_ptr();
+        let internal_name = internal_name.to_cstr_stash();
+        let external_module_name = external_module_name.to_cstr_stash();
+        let external_base_name = external_base_name.to_cstr_stash();
         unsafe {
             ffi::BinaryenAddImport(
                 self.inner.raw,
-                internal_name_ptr,
-                external_module_name_ptr,
-                external_base_name_ptr,
+                internal_name.as_ptr(),
+                external_module_name.as_ptr(),
+                external_base_name.as_ptr(),
                 fn_ty.raw,
             );
         }
     }
 
-    pub fn add_export(&self, internal_name: &Name, external_name: &Name) {
-        let internal_name_ptr = internal_name.as_ptr();
-        let external_name_ptr = external_name.as_ptr();
+    pub fn add_export<P1, N1: ToCStr<P1>, P2, N2: ToCStr<N2>>(&self, internal_name: N1, external_name: N2) {
+        let internal_name = internal_name.to_cstr_stash();
+        let external_name = external_name.to_cstr_stash();
         unsafe {
-            ffi::BinaryenAddExport(self.inner.raw, internal_name_ptr, external_name_ptr);
+            ffi::BinaryenAddExport(self.inner.raw, internal_name.as_ptr(), external_name.as_ptr());
         }
     }
 
     // TODO: undefined ty?
     // https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h#L272
-    pub fn block(&self, name: Option<&Name>, children: &[Expr], ty: Ty) -> Expr {
-        let name_ptr = name.map_or(ptr::null(), |n| n.as_ptr());
-
+    pub fn block<P, N: ToCStr<P>>(&self, name: Option<N>, children: &[Expr], ty: Ty) -> Expr {
+        let name = to_cstr_stash_option(name);
         let raw_expr = unsafe {
             let mut children_raw: Vec<_> = children.iter().map(|ty| ty.to_raw()).collect();
             ffi::BinaryenBlock(
                 self.inner.raw,
-                name_ptr,
+                name.as_ptr(),
                 children_raw.as_mut_ptr(),
                 children_raw.len() as _,
                 ty.into(),
@@ -276,17 +275,17 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn get_global(&self, name: &Name, ty: ValueTy) -> Expr {
-        let global_name_ptr = name.as_ptr();
+    pub fn get_global<P, N: ToCStr<P>>(&self, name: N, ty: ValueTy) -> Expr {
+        let name = name.to_cstr_stash();
         let raw_expr =
-            unsafe { ffi::BinaryenGetGlobal(self.inner.raw, global_name_ptr, ty.into()) };
+            unsafe { ffi::BinaryenGetGlobal(self.inner.raw, name.as_ptr(), ty.into()) };
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn set_global(&self, name: &Name, value: Expr) -> Expr {
-        let global_name_ptr = name.as_ptr();
+    pub fn set_global<P, N: ToCStr<P>>(&self, name: N, value: Expr) -> Expr {
+        let name = name.to_cstr_stash();
         let raw_expr =
-            unsafe { ffi::BinaryenSetGlobal(self.inner.raw, global_name_ptr, value.to_raw()) };
+            unsafe { ffi::BinaryenSetGlobal(self.inner.raw, name.as_ptr(), value.to_raw()) };
         Expr::from_raw(self, raw_expr)
     }
 
@@ -319,13 +318,13 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call(&self, name: &Name, operands: &[Expr]) -> Expr {
-        let name_ptr = name.as_ptr();
+    pub fn call<P, N: ToCStr<P>>(&self, name: N, operands: &[Expr]) -> Expr {
+        let name = name.to_cstr_stash();
         let raw_expr = unsafe {
             let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
             ffi::BinaryenCall(
                 self.inner.raw,
-                name_ptr,
+                name.as_ptr(),
                 operands_raw.as_mut_ptr(),
                 operands_raw.len() as _,
                 ffi::BinaryenNone(),
@@ -334,28 +333,28 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call_indirect(&self, target: Expr, operands: &[Expr], ty: &Name) -> Expr {
+    pub fn call_indirect<P, N: ToCStr<P>>(&self, target: Expr, operands: &[Expr], ty_name: N) -> Expr {
+        let ty_name = ty_name.to_cstr_stash();
         let raw_expr = unsafe {
             let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
-            let ty_ptr = ty.as_ptr();
             ffi::BinaryenCallIndirect(
                 self.inner.raw,
                 target.to_raw(),
                 operands_raw.as_mut_ptr(),
                 operands_raw.len() as _,
-                ty_ptr
+                ty_name.as_ptr(),
             )
         };
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call_import(&self, name: &Name, operands: &[Expr], ty: Ty) -> Expr {
-        let name_ptr = name.as_ptr();
+    pub fn call_import<P, N: ToCStr<P>>(&self, name: N, operands: &[Expr], ty: Ty) -> Expr {
+        let name = name.to_cstr_stash();
         let raw_expr = unsafe {
             let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
             ffi::BinaryenCallImport(
                 self.inner.raw,
-                name_ptr,
+                name.as_ptr(),
                 operands_raw.as_mut_ptr(),
                 operands_raw.len() as _,
                 ty.into(),
@@ -375,14 +374,14 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn host(&self, op: HostOp, name: Option<&Name>, operands: &[Expr]) -> Expr {
-        let name_ptr = name.map_or(ptr::null(), |n| n.as_ptr());
+    pub fn host<P, N: ToCStr<P>>(&self, op: HostOp, name: Option<N>, operands: &[Expr]) -> Expr {
+        let name = to_cstr_stash_option(name);
         let raw_expr = unsafe {
             let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
             ffi::BinaryenHost(
                 self.inner.raw,
                 op.into(),
-                name_ptr,
+                name.as_ptr(),
                 operands_raw.as_mut_ptr(),
                 operands_raw.len() as _,
             )
@@ -812,13 +811,13 @@ fn test_hello_world() {
     let module = Module::new();
 
     let params = &[ValueTy::I32, ValueTy::I32];
-    let iii = module.add_fn_type(Some(&"iii".into()), params, Ty::value(ValueTy::I32));
+    let iii = module.add_fn_type(Some("iii"), params, Ty::value(ValueTy::I32));
 
     let x = module.get_local(0, ValueTy::I32);
     let y = module.get_local(1, ValueTy::I32);
     let add = module.binary(BinaryOp::AddI32, x, y);
 
-    let _adder = module.add_fn(&"adder".into(), &iii, &[], add);
+    let _adder = module.add_fn("adder", &iii, &[], add);
 
     assert!(module.is_valid());
 }
@@ -827,17 +826,17 @@ fn test_hello_world() {
 fn test_simple() {
     let module = Module::new();
 
-    let main_fn_ty = module.add_fn_type(Some(&"main_fn_ty".into()), &[], Ty::none());
+    let main_fn_ty = module.add_fn_type(Some("main_fn_ty"), &[], Ty::none());
 
     {
         let segment_data = b"Hello world\0";
         let segment_offset_expr = module.const_(Literal::I32(0));
         let segments = &[Segment::new(segment_data, segment_offset_expr)];
-        module.set_memory(1, 1, Some(&"mem".into()), segments);
+        module.set_memory(1, 1, Some("mem"), segments);
     }
 
     let nop = module.nop();
-    let main = module.add_fn(&"main".into(), &main_fn_ty, &[], nop);
+    let main = module.add_fn("main", &main_fn_ty, &[], nop);
     module.set_start(&main);
 
     assert!(module.is_valid());
@@ -864,7 +863,7 @@ fn test_use_same_expr_twice() {
     let expr = module.nop();
     let expr_copy = Expr::from_raw(&module, expr.raw);
 
-    module.block(None, &[expr, expr_copy], Ty::none());
+    module.block(None::<&str>, &[expr, expr_copy], Ty::none());
 }
 
 #[test]
@@ -872,14 +871,14 @@ fn test_unreachable() {
     let module = Module::new();
 
     let params = &[];
-    let return_i32 = module.add_fn_type(None, params, Ty::value(ValueTy::I32));
-    let _ = module.add_fn_type(Some(&"return_i64".into()), params, Ty::value(ValueTy::I64));
+    let return_i32 = module.add_fn_type(None::<&str>, params, Ty::value(ValueTy::I32));
+    let _ = module.add_fn_type(Some("return_i64"), params, Ty::value(ValueTy::I64));
 
     let unreachable = module.unreachable();
 
-    let add = module.call_indirect(unreachable, &[], &"return_i64".into());
+    let add = module.call_indirect(unreachable, &[], "return_i64");
 
-    let _test = module.add_fn(&"test".into(), &return_i32, &[], add);
+    let _test = module.add_fn("test", &return_i32, &[], add);
 
     assert!(module.is_valid());
     module.print();

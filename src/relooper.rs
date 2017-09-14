@@ -2,7 +2,7 @@
 use std::rc::Rc;
 use std::ptr;
 use ffi;
-use {InnerModule, Expr};
+use {Expr, InnerModule};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct RelooperBlockId(usize);
