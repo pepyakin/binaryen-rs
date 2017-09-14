@@ -230,20 +230,28 @@ impl Module {
         let raw_expr = unsafe {
             let raw_if_true = if_true.to_raw();
             let raw_if_false = if_false.map_or(ptr::null_mut(), |v| v.to_raw());
-            ffi::BinaryenIf(self.inner.raw, condition.to_raw(), raw_if_true, raw_if_false)
+            ffi::BinaryenIf(
+                self.inner.raw,
+                condition.to_raw(),
+                raw_if_true,
+                raw_if_false,
+            )
         };
         Expr::from_raw(self, raw_expr)
     }
 
     pub fn loop_<P, N: ToCStr<P>>(&self, name: N, body: Expr) -> Expr {
         let name = name.to_cstr_stash();
-        let raw_expr = unsafe {
-            ffi::BinaryenLoop(self.inner.raw, name.as_ptr(), body.to_raw())
-        };
+        let raw_expr = unsafe { ffi::BinaryenLoop(self.inner.raw, name.as_ptr(), body.to_raw()) };
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn break_<P, N: ToCStr<P>>(&self, name: N, condition: Option<Expr>, value: Option<Expr>) -> Expr {
+    pub fn break_<P, N: ToCStr<P>>(
+        &self,
+        name: N,
+        condition: Option<Expr>,
+        value: Option<Expr>,
+    ) -> Expr {
         let name = name.to_cstr_stash();
         let raw_expr = unsafe {
             let raw_condition = condition.map_or(ptr::null_mut(), |v| v.to_raw());
