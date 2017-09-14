@@ -235,6 +235,14 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
+    pub fn loop_<P, N: ToCStr<P>>(&self, name: N, body: Expr) -> Expr {
+        let name = name.to_cstr_stash();
+        let raw_expr = unsafe {
+            ffi::BinaryenLoop(self.inner.raw, name.as_ptr(), body.to_raw())
+        };
+        Expr::from_raw(self, raw_expr)
+    }
+
     // TODO: undefined ty?
     // https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h#L272
     pub fn block<P, N: ToCStr<P>>(&self, name: Option<N>, children: &[Expr], ty: Ty) -> Expr {
