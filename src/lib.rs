@@ -126,7 +126,12 @@ impl Module {
         Relooper::new(Rc::clone(&self.inner))
     }
 
-    pub fn add_fn_type<P, N: ToCStr<P>>(&self, name: Option<N>, param_tys: &[ValueTy], result_ty: Ty) -> FnType {
+    pub fn add_fn_type<P, N: ToCStr<P>>(
+        &self,
+        name: Option<N>,
+        param_tys: &[ValueTy],
+        result_ty: Ty,
+    ) -> FnType {
         let name = to_cstr_stash_option(name);
         let raw = unsafe {
             let mut param_tys_raw = param_tys
@@ -145,7 +150,13 @@ impl Module {
         FnType { raw }
     }
 
-    pub fn add_fn<P, N: ToCStr<P>>(&self, name: N, fn_ty: &FnType, var_tys: &[ValueTy], body: Expr) -> FnRef {
+    pub fn add_fn<P, N: ToCStr<P>>(
+        &self,
+        name: N,
+        fn_ty: &FnType,
+        var_tys: &[ValueTy],
+        body: Expr,
+    ) -> FnRef {
         let name = name.to_cstr_stash();
         let inner = unsafe {
             let mut var_tys_raw = var_tys
@@ -199,11 +210,19 @@ impl Module {
         }
     }
 
-    pub fn add_export<P1, N1: ToCStr<P1>, P2, N2: ToCStr<N2>>(&self, internal_name: N1, external_name: N2) {
+    pub fn add_export<P1, N1: ToCStr<P1>, P2, N2: ToCStr<N2>>(
+        &self,
+        internal_name: N1,
+        external_name: N2,
+    ) {
         let internal_name = internal_name.to_cstr_stash();
         let external_name = external_name.to_cstr_stash();
         unsafe {
-            ffi::BinaryenAddExport(self.inner.raw, internal_name.as_ptr(), external_name.as_ptr());
+            ffi::BinaryenAddExport(
+                self.inner.raw,
+                internal_name.as_ptr(),
+                external_name.as_ptr(),
+            );
         }
     }
 
@@ -277,8 +296,7 @@ impl Module {
 
     pub fn get_global<P, N: ToCStr<P>>(&self, name: N, ty: ValueTy) -> Expr {
         let name = name.to_cstr_stash();
-        let raw_expr =
-            unsafe { ffi::BinaryenGetGlobal(self.inner.raw, name.as_ptr(), ty.into()) };
+        let raw_expr = unsafe { ffi::BinaryenGetGlobal(self.inner.raw, name.as_ptr(), ty.into()) };
         Expr::from_raw(self, raw_expr)
     }
 
@@ -333,7 +351,12 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call_indirect<P, N: ToCStr<P>>(&self, target: Expr, operands: &[Expr], ty_name: N) -> Expr {
+    pub fn call_indirect<P, N: ToCStr<P>>(
+        &self,
+        target: Expr,
+        operands: &[Expr],
+        ty_name: N,
+    ) -> Expr {
         let ty_name = ty_name.to_cstr_stash();
         let raw_expr = unsafe {
             let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
