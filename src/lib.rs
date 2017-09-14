@@ -226,6 +226,15 @@ impl Module {
         }
     }
 
+    pub fn if_(&self, condition: Expr, if_true: Expr, if_false: Option<Expr>) -> Expr {
+        let raw_expr = unsafe {
+            let raw_if_true = if_true.to_raw();
+            let raw_if_false = if_false.map_or(ptr::null_mut(), |v| v.to_raw());
+            ffi::BinaryenIf(self.inner.raw, condition.to_raw(), raw_if_true, raw_if_false)
+        };
+        Expr::from_raw(self, raw_expr)
+    }
+
     // TODO: undefined ty?
     // https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h#L272
     pub fn block<P, N: ToCStr<P>>(&self, name: Option<N>, children: &[Expr], ty: Ty) -> Expr {
