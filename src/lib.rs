@@ -3,7 +3,7 @@ pub extern crate binaryen_sys;
 pub use binaryen_sys as ffi;
 
 use std::rc::Rc;
-use std::os::raw::{c_char, c_int};
+use std::os::raw::c_char;
 use std::ptr;
 
 mod to_cstr;
@@ -172,7 +172,7 @@ impl Module {
                 self.inner.raw,
                 name.as_ptr(),
                 ty.into(),
-                mutable as c_int,
+                mutable as i8,
                 init.to_raw(),
             );
         }
@@ -881,6 +881,4 @@ fn test_unreachable() {
     let _test = module.add_fn("test", &return_i32, &[], add);
 
     assert!(module.is_valid());
-    module.print();
-    panic!();
 }
