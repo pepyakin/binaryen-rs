@@ -382,14 +382,22 @@ impl Module {
 
     pub fn set_local(&self, index: u32, value: Expr) -> Expr {
         let raw_expr = unsafe {
-            ffi::BinaryenSetLocal(self.inner.raw, index as ffi::BinaryenIndex, value.into_raw())
+            ffi::BinaryenSetLocal(
+                self.inner.raw,
+                index as ffi::BinaryenIndex,
+                value.into_raw(),
+            )
         };
         Expr::from_raw(self, raw_expr)
     }
 
     pub fn tee_local(&self, index: u32, value: Expr) -> Expr {
         let raw_expr = unsafe {
-            ffi::BinaryenTeeLocal(self.inner.raw, index as ffi::BinaryenIndex, value.into_raw())
+            ffi::BinaryenTeeLocal(
+                self.inner.raw,
+                index as ffi::BinaryenIndex,
+                value.into_raw(),
+            )
         };
         Expr::from_raw(self, raw_expr)
     }
@@ -460,8 +468,9 @@ impl Module {
     }
 
     pub fn binary(&self, op: BinaryOp, lhs: Expr, rhs: Expr) -> Expr {
-        let raw_expr =
-            unsafe { ffi::BinaryenBinary(self.inner.raw, op.into(), lhs.into_raw(), rhs.into_raw()) };
+        let raw_expr = unsafe {
+            ffi::BinaryenBinary(self.inner.raw, op.into(), lhs.into_raw(), rhs.into_raw())
+        };
         Expr::from_raw(self, raw_expr)
     }
 
