@@ -75,9 +75,35 @@ impl Relooper {
         let to_block = self.blocks[to.0];
 
         unsafe {
-            let condition_ptr = condition.map_or(ptr::null_mut(), |e| e.raw);
-            let code_ptr = code.map_or(ptr::null_mut(), |e| e.raw);
+            let condition_ptr = condition.map_or(ptr::null_mut(), |e| e.into_raw());
+            let code_ptr = code.map_or(ptr::null_mut(), |e| e.into_raw());
             ffi::RelooperAddBranch(from_block as _, to_block as _, condition_ptr, code_ptr)
+        }
+    }
+
+    pub fn add_branch_for_switch(
+        &self,
+        from: RelooperBlockId,
+        to: RelooperBlockId,
+        indices: &[u32],
+        code: Option<Expr>,
+    ) {
+        debug_assert!(
+            code.as_ref()
+                .map_or(true, |e| { self.is_expr_from_same_module(e) })
+        );
+        let from_block = self.blocks[from.0];
+        let to_block = self.blocks[to.0];
+
+        unsafe {
+            let code_ptr = code.map_or(ptr::null_mut(), |e| e.into_raw());
+            ffi::RelooperAddBranchForSwitch(
+                from_block,
+                to_block,
+                indices.as_ptr() as *mut _,
+                indices.len() as _,
+                code_ptr,
+            );
         }
     }
 
