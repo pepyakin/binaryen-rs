@@ -93,30 +93,29 @@ impl Module {
         buf
     }
 
-    pub fn set_memory<P, N: ToCStr<P>>(
-        &self,
-        initial: u32,
-        maximal: u32,
-        name: Option<N>,
-        segments: &[Segment],
-    ) {
+    pub fn set_memory<'a, I, P, N>(&self, initial: u32, maximal: u32, name: Option<N>, segments: I)
+    where
+        I: IntoIterator<Item = Segment<'a>>,
+        N: ToCStr<P>,
+    {
         let name = to_cstr_stash_option(name);
-        let mut segment_datas: Vec<_> = segments.iter().map(|s| s.data.as_ptr()).collect();
-        let mut segment_sizes: Vec<_> = segments.iter().map(|s| s.data.len() as u32).collect();
-        let segments_count = segments.len();
-
         unsafe {
-            let mut segment_offsets: Vec<_> =
-                segments.iter().map(|s| s.offset_expr.to_raw()).collect();
-
+            let (datas_and_sizes, mut offset_exprs): (Vec<_>, Vec<_>) = segments
+                .into_iter()
+                .map(|Segment { data, offset_expr }| {
+                    ((data.as_ptr(), data.len() as u32), offset_expr.to_raw())
+                })
+                .unzip();
+            let (mut datas, mut sizes): (Vec<_>, Vec<_>) = datas_and_sizes.into_iter().unzip();
+            let segments_count = offset_exprs.len();
             ffi::BinaryenSetMemory(
                 self.inner.raw,
                 initial,
                 maximal,
                 name.as_ptr(),
-                segment_datas.as_mut_ptr() as *mut *const c_char,
-                segment_offsets.as_mut_ptr(),
-                segment_sizes.as_mut_ptr(),
+                datas.as_mut_ptr() as *mut *const c_char,
+                offset_exprs.as_mut_ptr(),
+                sizes.as_mut_ptr(),
                 segments_count as _,
             )
         }
@@ -283,7 +282,7 @@ impl Module {
                 name_ptrs.len() as _,
                 default_name.as_ptr(),
                 raw_condition,
-                raw_value
+                raw_value,
             )
         };
         Expr::from_raw(self, raw_expr)
@@ -887,9 +886,7 @@ impl Expr {
     }
 
     pub fn print(&self) {
-        unsafe {
-            ffi::BinaryenExpressionPrint(self.raw)
-        }
+        unsafe { ffi::BinaryenExpressionPrint(self.raw) }
     }
 }
 
@@ -940,7 +937,7 @@ fn test_simple() {
     {
         let segment_data = b"Hello world\0";
         let segment_offset_expr = module.const_(Literal::I32(0));
-        let segments = &[Segment::new(segment_data, segment_offset_expr)];
+        let segments = vec![Segment::new(segment_data, segment_offset_expr)];
         module.set_memory(1, 1, Some("mem"), segments);
     }
 
