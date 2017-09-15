@@ -17,11 +17,13 @@ impl<T> Stash<T> {
     }
 }
 
-pub trait ToCStr<T> {
-    fn to_cstr_stash(self) -> Stash<T>;
+pub trait ToCStr {
+    type Storage;
+    fn to_cstr_stash(self) -> Stash<Self::Storage>;
 }
 
-impl<'a, T: AsRef<CStr>> ToCStr<&'a CStr> for &'a T {
+impl<'a> ToCStr for &'a CStr {
+    type Storage = &'a CStr;
     fn to_cstr_stash(self) -> Stash<&'a CStr> {
         let r = self.as_ref();
         let ptr = r.as_ptr();
@@ -29,46 +31,83 @@ impl<'a, T: AsRef<CStr>> ToCStr<&'a CStr> for &'a T {
     }
 }
 
-impl<'a, T: AsRef<[u8]>> ToCStr<CString> for &'a T {
-    fn to_cstr_stash(self) -> Stash<CString> {
-        let vec = self.as_ref().to_vec();
-        let cstring = CString::new(vec).unwrap();
-        let ptr = cstring.as_ptr();
-        Stash::new(cstring, ptr)
-    }
-}
-
-impl<'a> ToCStr<CString> for &'a str {
-    fn to_cstr_stash(self) -> Stash<CString> {
-        let cstring = CString::new(self).unwrap();
-        let ptr = cstring.as_ptr();
-        Stash::new(cstring, ptr)
-    }
-}
-
-// Good. We were given String and we convert it into CString.
-impl ToCStr<CString> for String {
-    fn to_cstr_stash(self) -> Stash<CString> {
-        let cstring = CString::new(self).unwrap();
-        let ptr = cstring.as_ptr();
-        Stash::new(cstring, ptr)
-    }
-}
-
-// Good, there is nothing to do here.
-impl ToCStr<CString> for CString {
+impl ToCStr for CString {
+    type Storage = CString;
     fn to_cstr_stash(self) -> Stash<CString> {
         let ptr = self.as_ptr();
         Stash::new(self, ptr)
     }
 }
 
-pub fn to_cstr_stash_option<P, T: ToCStr<P>>(name: Option<T>) -> Stash<Option<P>> {
+impl<'a> ToCStr for &'a str {
+    type Storage = CString;
+    fn to_cstr_stash(self) -> Stash<CString> {
+        let cstring = CString::new(self).unwrap();
+        let ptr = cstring.as_ptr();
+        Stash::new(cstring, ptr)
+    }
+}
+
+impl ToCStr for String {
+    type Storage = CString;
+    fn to_cstr_stash(self) -> Stash<CString> {
+        let cstring = CString::new(self).unwrap();
+        let ptr = cstring.as_ptr();
+        Stash::new(cstring, ptr)
+    }
+}
+
+pub fn to_cstr_stash_option<T: ToCStr>(name: Option<T>) -> Stash<Option<T::Storage>> {
     match name {
         Some(str) => {
             let Stash { storage, ptr } = str.to_cstr_stash();
             Stash::new(Some(storage), ptr)
         }
         None => Stash::new(None, ptr::null()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn accepts_cstr(x: *const c_char) {
+        assert!(!x.is_null());
+        unsafe {
+            let cstr = CStr::from_ptr(x);
+            let str_ = cstr.to_str().unwrap();
+            println!("cstr={}, len={}", str_, str_.len());
+        }
+    }
+
+    fn do_stuff_maybe<T: ToCStr>(name: Option<T>) {
+        let stash = to_cstr_stash_option(name);
+        if !stash.as_ptr().is_null() {
+            accepts_cstr(stash.as_ptr());
+        }
+    }
+
+    fn do_stuff<T: ToCStr>(name: T) {
+        let stash = name.to_cstr_stash();
+        accepts_cstr(stash.as_ptr());
+    }
+
+    #[test]
+    fn test_use_cases() {
+        do_stuff_maybe(Some("Some(String)".to_string()));
+        do_stuff_maybe(Some("Some(&str)"));
+        do_stuff_maybe(None::<&str>);
+
+        do_stuff("String".to_string());
+        do_stuff(&*"&String".to_string());
+
+        let formatted_name = format!("format!");
+        do_stuff(&*formatted_name);
+
+        do_stuff("&str");
+
+
+        do_stuff(&*CString::new("&*CString").unwrap());
+        do_stuff(&*CString::new("&*CString, as_c_str()").unwrap().as_c_str());
     }
 }

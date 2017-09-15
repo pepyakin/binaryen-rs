@@ -93,10 +93,10 @@ impl Module {
         buf
     }
 
-    pub fn set_memory<'a, I, P, N>(&self, initial: u32, maximal: u32, name: Option<N>, segments: I)
+    pub fn set_memory<'a, I, N>(&self, initial: u32, maximal: u32, name: Option<N>, segments: I)
     where
         I: IntoIterator<Item = Segment<'a>>,
-        N: ToCStr<P>,
+        N: ToCStr,
     {
         let name = to_cstr_stash_option(name);
         unsafe {
@@ -125,7 +125,7 @@ impl Module {
         Relooper::new(Rc::clone(&self.inner))
     }
 
-    pub fn add_fn_type<P, N: ToCStr<P>>(
+    pub fn add_fn_type<N: ToCStr>(
         &self,
         name: Option<N>,
         param_tys: &[ValueTy],
@@ -149,7 +149,7 @@ impl Module {
         FnType { raw }
     }
 
-    pub fn add_fn<P, N: ToCStr<P>>(
+    pub fn add_fn<N: ToCStr>(
         &self,
         name: N,
         fn_ty: &FnType,
@@ -175,7 +175,7 @@ impl Module {
         FnRef { inner }
     }
 
-    pub fn add_global<P, N: ToCStr<P>>(&self, name: N, ty: ValueTy, mutable: bool, init: Expr) {
+    pub fn add_global<N: ToCStr>(&self, name: N, ty: ValueTy, mutable: bool, init: Expr) {
         let name = name.to_cstr_stash();
         unsafe {
             ffi::BinaryenAddGlobal(
@@ -188,7 +188,7 @@ impl Module {
         }
     }
 
-    pub fn add_import<P1, N1: ToCStr<P1>, P2, N2: ToCStr<P2>, P3, N3: ToCStr<P3>>(
+    pub fn add_import<N1: ToCStr, N2: ToCStr, N3: ToCStr>(
         &self,
         internal_name: N1,
         external_module_name: N2,
@@ -209,7 +209,7 @@ impl Module {
         }
     }
 
-    pub fn add_export<P1, N1: ToCStr<P1>, P2, N2: ToCStr<P2>>(
+    pub fn add_export<N1: ToCStr, N2: ToCStr>(
         &self,
         internal_name: N1,
         external_name: N2,
@@ -239,13 +239,13 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn loop_<P, N: ToCStr<P>>(&self, name: N, body: Expr) -> Expr {
+    pub fn loop_<N: ToCStr>(&self, name: N, body: Expr) -> Expr {
         let name = name.to_cstr_stash();
         let raw_expr = unsafe { ffi::BinaryenLoop(self.inner.raw, name.as_ptr(), body.into_raw()) };
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn break_<P, N: ToCStr<P>>(
+    pub fn break_<N: ToCStr>(
         &self,
         name: N,
         condition: Option<Expr>,
@@ -260,7 +260,7 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn switch<P1, N1: ToCStr<P1>, P2, N2: ToCStr<P2>>(
+    pub fn switch<N1: ToCStr, N2: ToCStr>(
         &self,
         names: Vec<N1>,
         default_name: N2,
@@ -290,10 +290,10 @@ impl Module {
 
     // TODO: undefined ty?
     // https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h#L272
-    pub fn block<P, N, I>(&self, name: Option<N>, children: I, ty: Ty) -> Expr
+    pub fn block<N, I>(&self, name: Option<N>, children: I, ty: Ty) -> Expr
     where
         I: IntoIterator<Item = Expr>,
-        N: ToCStr<P>,
+        N: ToCStr,
     {
         let name = to_cstr_stash_option(name);
         let raw_expr = unsafe {
@@ -360,13 +360,13 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn get_global<P, N: ToCStr<P>>(&self, name: N, ty: ValueTy) -> Expr {
+    pub fn get_global<N: ToCStr>(&self, name: N, ty: ValueTy) -> Expr {
         let name = name.to_cstr_stash();
         let raw_expr = unsafe { ffi::BinaryenGetGlobal(self.inner.raw, name.as_ptr(), ty.into()) };
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn set_global<P, N: ToCStr<P>>(&self, name: N, value: Expr) -> Expr {
+    pub fn set_global<N: ToCStr>(&self, name: N, value: Expr) -> Expr {
         let name = name.to_cstr_stash();
         let raw_expr =
             unsafe { ffi::BinaryenSetGlobal(self.inner.raw, name.as_ptr(), value.into_raw()) };
@@ -410,9 +410,9 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call<P, N, I>(&self, name: N, operands: I) -> Expr
+    pub fn call<N, I>(&self, name: N, operands: I) -> Expr
     where
-        N: ToCStr<P>,
+        N: ToCStr,
         I: IntoIterator<Item = Expr>,
     {
         let name = name.to_cstr_stash();
@@ -429,9 +429,9 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call_indirect<P, N, I>(&self, target: Expr, operands: I, ty_name: N) -> Expr
+    pub fn call_indirect<N, I>(&self, target: Expr, operands: I, ty_name: N) -> Expr
     where
-        N: ToCStr<P>,
+        N: ToCStr,
         I: IntoIterator<Item = Expr>,
     {
         let ty_name = ty_name.to_cstr_stash();
@@ -448,9 +448,9 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call_import<P, N, I>(&self, name: N, operands: I, ty: Ty) -> Expr
+    pub fn call_import<N, I>(&self, name: N, operands: I, ty: Ty) -> Expr
     where
-        N: ToCStr<P>,
+        N: ToCStr,
         I: IntoIterator<Item = Expr>,
     {
         let name = name.to_cstr_stash();
@@ -479,9 +479,9 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn host<P, N, I>(&self, op: HostOp, name: Option<N>, operands: I) -> Expr
+    pub fn host<N, I>(&self, op: HostOp, name: Option<N>, operands: I) -> Expr
     where
-        N: ToCStr<P>,
+        N: ToCStr,
         I: IntoIterator<Item = Expr>,
     {
         let name = to_cstr_stash_option(name);
