@@ -290,10 +290,14 @@ impl Module {
 
     // TODO: undefined ty?
     // https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h#L272
-    pub fn block<P, N: ToCStr<P>>(&self, name: Option<N>, children: &[Expr], ty: Ty) -> Expr {
+    pub fn block<P, N, I>(&self, name: Option<N>, children: I, ty: Ty) -> Expr
+    where
+        I: IntoIterator<Item = Expr>,
+        N: ToCStr<P>,
+    {
         let name = to_cstr_stash_option(name);
         let raw_expr = unsafe {
-            let mut children_raw: Vec<_> = children.iter().map(|ty| ty.to_raw()).collect();
+            let mut children_raw: Vec<_> = children.into_iter().map(|ty| ty.to_raw()).collect();
             ffi::BinaryenBlock(
                 self.inner.raw,
                 name.as_ptr(),
@@ -969,7 +973,7 @@ fn test_use_same_expr_twice() {
     let expr = module.nop();
     let expr_copy = Expr::from_raw(&module, expr.raw);
 
-    module.block(None::<&str>, &[expr, expr_copy], Ty::none());
+    module.block(None::<&str>, vec![expr, expr_copy], Ty::none());
 }
 
 #[test]
