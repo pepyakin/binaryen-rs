@@ -136,7 +136,7 @@ impl Module {
             let mut param_tys_raw = param_tys
                 .iter()
                 .cloned()
-                .map(|ty| ty.into())
+                .map(Into::into)
                 .collect::<Vec<_>>();
             ffi::BinaryenAddFunctionType(
                 self.inner.raw,
@@ -158,11 +158,7 @@ impl Module {
     ) -> FnRef {
         let name = name.to_cstr_stash();
         let inner = unsafe {
-            let mut var_tys_raw = var_tys
-                .iter()
-                .cloned()
-                .map(|ty| ty.into())
-                .collect::<Vec<_>>();
+            let mut var_tys_raw = var_tys.iter().cloned().map(Into::into).collect::<Vec<_>>();
             ffi::BinaryenAddFunction(
                 self.inner.raw,
                 name.as_ptr(),
@@ -209,11 +205,7 @@ impl Module {
         }
     }
 
-    pub fn add_export<N1: ToCStr, N2: ToCStr>(
-        &self,
-        internal_name: N1,
-        external_name: N2,
-    ) {
+    pub fn add_export<N1: ToCStr, N2: ToCStr>(&self, internal_name: N1, external_name: N2) {
         let internal_name = internal_name.to_cstr_stash();
         let external_name = external_name.to_cstr_stash();
         unsafe {
@@ -245,12 +237,7 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn break_<N: ToCStr>(
-        &self,
-        name: N,
-        condition: Option<Expr>,
-        value: Option<Expr>,
-    ) -> Expr {
+    pub fn break_<N: ToCStr>(&self, name: N, condition: Option<Expr>, value: Option<Expr>) -> Expr {
         let name = name.to_cstr_stash();
         let raw_expr = unsafe {
             let raw_condition = condition.map_or(ptr::null_mut(), |v| v.into_raw());
@@ -271,7 +258,7 @@ impl Module {
         let raw_expr = unsafe {
             let (_storage, mut name_ptrs): (Vec<_>, Vec<_>) = names
                 .into_iter()
-                .map(|x| x.to_cstr_stash())
+                .map(ToCStr::to_cstr_stash)
                 .map(|Stash { storage, ptr }| (storage, ptr))
                 .unzip();
             let raw_condition = condition.into_raw();
