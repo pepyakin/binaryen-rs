@@ -926,80 +926,86 @@ impl From<Literal> for ffi::BinaryenLiteral {
     }
 }
 
-// see https://github.com/WebAssembly/binaryen/blob/master/test/example/c-api-hello-world.c
-#[test]
-fn test_hello_world() {
-    let module = Module::new();
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    let params = &[ValueTy::I32, ValueTy::I32];
-    let iii = module.add_fn_type(Some("iii"), params, Ty::value(ValueTy::I32));
+    // see https://github.com/WebAssembly/binaryen/blob/master/test/example/c-api-hello-world.c
+    #[test]
+    fn test_hello_world() {
+        let module = Module::new();
 
-    let x = module.get_local(0, ValueTy::I32);
-    let y = module.get_local(1, ValueTy::I32);
-    let add = module.binary(BinaryOp::AddI32, x, y);
+        let params = &[ValueTy::I32, ValueTy::I32];
+        let iii = module.add_fn_type(Some("iii"), params, Ty::value(ValueTy::I32));
 
-    let _adder = module.add_fn("adder", &iii, &[], add);
+        let x = module.get_local(0, ValueTy::I32);
+        let y = module.get_local(1, ValueTy::I32);
+        let add = module.binary(BinaryOp::AddI32, x, y);
 
-    assert!(module.is_valid());
-}
+        let _adder = module.add_fn("adder", &iii, &[], add);
 
-#[test]
-fn test_simple() {
-    let module = Module::new();
-
-    let main_fn_ty = module.add_fn_type(Some("main_fn_ty"), &[], Ty::none());
-
-    {
-        let segment_data = b"Hello world\0";
-        let segment_offset_expr = module.const_(Literal::I32(0));
-        let segments = vec![Segment::new(segment_data, segment_offset_expr)];
-        module.set_memory(1, 1, Some("mem"), segments);
+        assert!(module.is_valid());
     }
 
-    let nop = module.nop();
-    let main = module.add_fn("main", &main_fn_ty, &[], nop);
-    module.set_start(&main);
+    #[test]
+    fn test_simple() {
+        let module = Module::new();
 
-    assert!(module.is_valid());
+        let main_fn_ty = module.add_fn_type(Some("main_fn_ty"), &[], Ty::none());
 
-    let written_wasm = module.write();
-    let read_wasm = Module::read(&written_wasm);
-    assert!(read_wasm.is_valid());
-}
+        {
+            let segment_data = b"Hello world\0";
+            let segment_offset_expr = module.const_(Literal::I32(0));
+            let segments = vec![Segment::new(segment_data, segment_offset_expr)];
+            module.set_memory(1, 1, Some("mem"), segments);
+        }
 
-#[should_panic]
-#[test]
-fn test_relooper_with_different_module() {
-    let module1 = Module::new();
-    let mut relooper = module1.relooper();
+        let nop = module.nop();
+        let main = module.add_fn("main", &main_fn_ty, &[], nop);
+        module.set_start(&main);
 
-    let module2 = Module::new();
-    // Should panic here.
-    relooper.add_block(module2.nop());
-}
+        assert!(module.is_valid());
 
-#[test]
-fn test_use_same_expr_twice() {
-    let module = Module::new();
-    let expr = module.nop();
-    let expr_copy = Expr::from_raw(&module, expr.raw);
+        let written_wasm = module.write();
+        let read_wasm = Module::read(&written_wasm);
+        assert!(read_wasm.is_valid());
+    }
 
-    module.block(None::<&str>, vec![expr, expr_copy], Ty::none());
-}
+    #[should_panic]
+    #[test]
+    fn test_relooper_with_different_module() {
+        let module1 = Module::new();
+        let mut relooper = module1.relooper();
 
-#[test]
-fn test_unreachable() {
-    let module = Module::new();
+        let module2 = Module::new();
+        // Should panic here.
+        relooper.add_block(module2.nop());
+    }
 
-    let params = &[];
-    let return_i32 = module.add_fn_type(None::<&str>, params, Ty::value(ValueTy::I32));
-    let _ = module.add_fn_type(Some("return_i64"), params, Ty::value(ValueTy::I64));
+    #[test]
+    fn test_use_same_expr_twice() {
+        let module = Module::new();
+        let expr = module.nop();
+        let expr_copy = Expr::from_raw(&module, expr.raw);
 
-    let unreachable = module.unreachable();
+        module.block(None::<&str>, vec![expr, expr_copy], Ty::none());
+    }
 
-    let add = module.call_indirect(unreachable, vec![], "return_i64");
+    #[test]
+    fn test_unreachable() {
+        let module = Module::new();
 
-    let _test = module.add_fn("test", &return_i32, &[], add);
+        let params = &[];
+        let return_i32 = module.add_fn_type(None::<&str>, params, Ty::value(ValueTy::I32));
+        let _ = module.add_fn_type(Some("return_i64"), params, Ty::value(ValueTy::I64));
 
-    assert!(module.is_valid());
+        let unreachable = module.unreachable();
+
+        let add = module.call_indirect(unreachable, vec![], "return_i64");
+
+        let _test = module.add_fn("test", &return_i32, &[], add);
+
+        assert!(module.is_valid());
+    }
+
 }
