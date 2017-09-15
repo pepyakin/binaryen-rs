@@ -402,10 +402,10 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call<P, N: ToCStr<P>>(&self, name: N, operands: &[Expr]) -> Expr {
+    pub fn call<P, N: ToCStr<P>, I: IntoIterator<Item=Expr>>(&self, name: N, operands: I) -> Expr {
         let name = name.to_cstr_stash();
         let raw_expr = unsafe {
-            let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
+            let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.to_raw()).collect();
             ffi::BinaryenCall(
                 self.inner.raw,
                 name.as_ptr(),
@@ -417,15 +417,15 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call_indirect<P, N: ToCStr<P>>(
+    pub fn call_indirect<P, N: ToCStr<P>, I: IntoIterator<Item=Expr>>(
         &self,
         target: Expr,
-        operands: &[Expr],
+        operands: I,
         ty_name: N,
     ) -> Expr {
         let ty_name = ty_name.to_cstr_stash();
         let raw_expr = unsafe {
-            let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
+            let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.to_raw()).collect();
             ffi::BinaryenCallIndirect(
                 self.inner.raw,
                 target.to_raw(),
@@ -437,10 +437,10 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call_import<P, N: ToCStr<P>>(&self, name: N, operands: &[Expr], ty: Ty) -> Expr {
+    pub fn call_import<P, N: ToCStr<P>, I: IntoIterator<Item=Expr>>(&self, name: N, operands: I, ty: Ty) -> Expr {
         let name = name.to_cstr_stash();
         let raw_expr = unsafe {
-            let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
+            let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.to_raw()).collect();
             ffi::BinaryenCallImport(
                 self.inner.raw,
                 name.as_ptr(),
@@ -986,7 +986,7 @@ fn test_unreachable() {
 
     let unreachable = module.unreachable();
 
-    let add = module.call_indirect(unreachable, &[], "return_i64");
+    let add = module.call_indirect(unreachable, vec![], "return_i64");
 
     let _test = module.add_fn("test", &return_i32, &[], add);
 
