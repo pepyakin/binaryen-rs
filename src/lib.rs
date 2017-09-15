@@ -103,7 +103,7 @@ impl Module {
             let (datas_and_sizes, mut offset_exprs): (Vec<_>, Vec<_>) = segments
                 .into_iter()
                 .map(|Segment { data, offset_expr }| {
-                    ((data.as_ptr(), data.len() as u32), offset_expr.to_raw())
+                    ((data.as_ptr(), data.len() as u32), offset_expr.into_raw())
                 })
                 .unzip();
             let (mut datas, mut sizes): (Vec<_>, Vec<_>) = datas_and_sizes.into_iter().unzip();
@@ -169,7 +169,7 @@ impl Module {
                 fn_ty.raw,
                 var_tys_raw.as_mut_ptr(),
                 var_tys_raw.len() as _,
-                body.to_raw(),
+                body.into_raw(),
             )
         };
         FnRef { inner }
@@ -183,7 +183,7 @@ impl Module {
                 name.as_ptr(),
                 ty.into(),
                 mutable as i8,
-                init.to_raw(),
+                init.into_raw(),
             );
         }
     }
@@ -227,11 +227,11 @@ impl Module {
 
     pub fn if_(&self, condition: Expr, if_true: Expr, if_false: Option<Expr>) -> Expr {
         let raw_expr = unsafe {
-            let raw_if_true = if_true.to_raw();
-            let raw_if_false = if_false.map_or(ptr::null_mut(), |v| v.to_raw());
+            let raw_if_true = if_true.into_raw();
+            let raw_if_false = if_false.map_or(ptr::null_mut(), |v| v.into_raw());
             ffi::BinaryenIf(
                 self.inner.raw,
-                condition.to_raw(),
+                condition.into_raw(),
                 raw_if_true,
                 raw_if_false,
             )
@@ -241,7 +241,7 @@ impl Module {
 
     pub fn loop_<P, N: ToCStr<P>>(&self, name: N, body: Expr) -> Expr {
         let name = name.to_cstr_stash();
-        let raw_expr = unsafe { ffi::BinaryenLoop(self.inner.raw, name.as_ptr(), body.to_raw()) };
+        let raw_expr = unsafe { ffi::BinaryenLoop(self.inner.raw, name.as_ptr(), body.into_raw()) };
         Expr::from_raw(self, raw_expr)
     }
 
@@ -253,8 +253,8 @@ impl Module {
     ) -> Expr {
         let name = name.to_cstr_stash();
         let raw_expr = unsafe {
-            let raw_condition = condition.map_or(ptr::null_mut(), |v| v.to_raw());
-            let raw_value = value.map_or(ptr::null_mut(), |v| v.to_raw());
+            let raw_condition = condition.map_or(ptr::null_mut(), |v| v.into_raw());
+            let raw_value = value.map_or(ptr::null_mut(), |v| v.into_raw());
             ffi::BinaryenBreak(self.inner.raw, name.as_ptr(), raw_condition, raw_value)
         };
         Expr::from_raw(self, raw_expr)
@@ -274,8 +274,8 @@ impl Module {
                 .map(|x| x.to_cstr_stash())
                 .map(|Stash { storage, ptr }| (storage, ptr))
                 .unzip();
-            let raw_condition = condition.to_raw();
-            let raw_value = value.map_or(ptr::null_mut(), |v| v.to_raw());
+            let raw_condition = condition.into_raw();
+            let raw_value = value.map_or(ptr::null_mut(), |v| v.into_raw());
             ffi::BinaryenSwitch(
                 self.inner.raw,
                 name_ptrs.as_mut_ptr(),
@@ -297,7 +297,7 @@ impl Module {
     {
         let name = to_cstr_stash_option(name);
         let raw_expr = unsafe {
-            let mut children_raw: Vec<_> = children.into_iter().map(|ty| ty.to_raw()).collect();
+            let mut children_raw: Vec<_> = children.into_iter().map(|ty| ty.into_raw()).collect();
             ffi::BinaryenBlock(
                 self.inner.raw,
                 name.as_ptr(),
@@ -331,7 +331,7 @@ impl Module {
                 offset,
                 align,
                 ty.into(),
-                ptr.to_raw(),
+                ptr.into_raw(),
             )
         };
         Expr::from_raw(self, raw_expr)
@@ -352,8 +352,8 @@ impl Module {
                 bytes,
                 offset,
                 align,
-                ptr.to_raw(),
-                value.to_raw(),
+                ptr.into_raw(),
+                value.into_raw(),
                 ty.into(),
             )
         };
@@ -369,7 +369,7 @@ impl Module {
     pub fn set_global<P, N: ToCStr<P>>(&self, name: N, value: Expr) -> Expr {
         let name = name.to_cstr_stash();
         let raw_expr =
-            unsafe { ffi::BinaryenSetGlobal(self.inner.raw, name.as_ptr(), value.to_raw()) };
+            unsafe { ffi::BinaryenSetGlobal(self.inner.raw, name.as_ptr(), value.into_raw()) };
         Expr::from_raw(self, raw_expr)
     }
 
@@ -382,21 +382,21 @@ impl Module {
 
     pub fn set_local(&self, index: u32, value: Expr) -> Expr {
         let raw_expr = unsafe {
-            ffi::BinaryenSetLocal(self.inner.raw, index as ffi::BinaryenIndex, value.to_raw())
+            ffi::BinaryenSetLocal(self.inner.raw, index as ffi::BinaryenIndex, value.into_raw())
         };
         Expr::from_raw(self, raw_expr)
     }
 
     pub fn tee_local(&self, index: u32, value: Expr) -> Expr {
         let raw_expr = unsafe {
-            ffi::BinaryenTeeLocal(self.inner.raw, index as ffi::BinaryenIndex, value.to_raw())
+            ffi::BinaryenTeeLocal(self.inner.raw, index as ffi::BinaryenIndex, value.into_raw())
         };
         Expr::from_raw(self, raw_expr)
     }
 
     pub fn return_(&self, value: Option<Expr>) -> Expr {
         let raw_expr = unsafe {
-            let raw_value = value.map_or(ptr::null_mut(), |v| v.to_raw());
+            let raw_value = value.map_or(ptr::null_mut(), |v| v.into_raw());
             ffi::BinaryenReturn(self.inner.raw, raw_value)
         };
         Expr::from_raw(self, raw_expr)
@@ -409,7 +409,7 @@ impl Module {
     {
         let name = name.to_cstr_stash();
         let raw_expr = unsafe {
-            let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.to_raw()).collect();
+            let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.into_raw()).collect();
             ffi::BinaryenCall(
                 self.inner.raw,
                 name.as_ptr(),
@@ -428,10 +428,10 @@ impl Module {
     {
         let ty_name = ty_name.to_cstr_stash();
         let raw_expr = unsafe {
-            let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.to_raw()).collect();
+            let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.into_raw()).collect();
             ffi::BinaryenCallIndirect(
                 self.inner.raw,
-                target.to_raw(),
+                target.into_raw(),
                 operands_raw.as_mut_ptr(),
                 operands_raw.len() as _,
                 ty_name.as_ptr(),
@@ -447,7 +447,7 @@ impl Module {
     {
         let name = name.to_cstr_stash();
         let raw_expr = unsafe {
-            let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.to_raw()).collect();
+            let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.into_raw()).collect();
             ffi::BinaryenCallImport(
                 self.inner.raw,
                 name.as_ptr(),
@@ -461,12 +461,12 @@ impl Module {
 
     pub fn binary(&self, op: BinaryOp, lhs: Expr, rhs: Expr) -> Expr {
         let raw_expr =
-            unsafe { ffi::BinaryenBinary(self.inner.raw, op.into(), lhs.to_raw(), rhs.to_raw()) };
+            unsafe { ffi::BinaryenBinary(self.inner.raw, op.into(), lhs.into_raw(), rhs.into_raw()) };
         Expr::from_raw(self, raw_expr)
     }
 
     pub fn unary(&self, op: UnaryOp, val: Expr) -> Expr {
-        let raw_expr = unsafe { ffi::BinaryenUnary(self.inner.raw, op.into(), val.to_raw()) };
+        let raw_expr = unsafe { ffi::BinaryenUnary(self.inner.raw, op.into(), val.into_raw()) };
         Expr::from_raw(self, raw_expr)
     }
 
@@ -477,7 +477,7 @@ impl Module {
     {
         let name = to_cstr_stash_option(name);
         let raw_expr = unsafe {
-            let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.to_raw()).collect();
+            let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.into_raw()).collect();
             ffi::BinaryenHost(
                 self.inner.raw,
                 op.into(),
@@ -503,16 +503,16 @@ impl Module {
         let raw_expr = unsafe {
             ffi::BinaryenSelect(
                 self.inner.raw,
-                condition.to_raw(),
-                if_true.to_raw(),
-                if_false.to_raw(),
+                condition.into_raw(),
+                if_true.into_raw(),
+                if_false.into_raw(),
             )
         };
         Expr::from_raw(self, raw_expr)
     }
 
     pub fn drop(&self, value: Expr) -> Expr {
-        let raw_expr = unsafe { ffi::BinaryenDrop(self.inner.raw, value.to_raw()) };
+        let raw_expr = unsafe { ffi::BinaryenDrop(self.inner.raw, value.into_raw()) };
         Expr::from_raw(self, raw_expr)
     }
 }
@@ -896,7 +896,7 @@ impl Expr {
         }
     }
 
-    pub unsafe fn to_raw(&self) -> ffi::BinaryenExpressionRef {
+    pub unsafe fn into_raw(self) -> ffi::BinaryenExpressionRef {
         self.raw
     }
 
