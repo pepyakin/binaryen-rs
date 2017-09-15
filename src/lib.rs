@@ -402,7 +402,11 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call<P, N: ToCStr<P>, I: IntoIterator<Item=Expr>>(&self, name: N, operands: I) -> Expr {
+    pub fn call<P, N, I>(&self, name: N, operands: I) -> Expr
+    where
+        N: ToCStr<P>,
+        I: IntoIterator<Item = Expr>,
+    {
         let name = name.to_cstr_stash();
         let raw_expr = unsafe {
             let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.to_raw()).collect();
@@ -417,12 +421,11 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call_indirect<P, N: ToCStr<P>, I: IntoIterator<Item=Expr>>(
-        &self,
-        target: Expr,
-        operands: I,
-        ty_name: N,
-    ) -> Expr {
+    pub fn call_indirect<P, N, I>(&self, target: Expr, operands: I, ty_name: N) -> Expr
+    where
+        N: ToCStr<P>,
+        I: IntoIterator<Item = Expr>,
+    {
         let ty_name = ty_name.to_cstr_stash();
         let raw_expr = unsafe {
             let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.to_raw()).collect();
@@ -437,7 +440,11 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call_import<P, N: ToCStr<P>, I: IntoIterator<Item=Expr>>(&self, name: N, operands: I, ty: Ty) -> Expr {
+    pub fn call_import<P, N, I>(&self, name: N, operands: I, ty: Ty) -> Expr
+    where
+        N: ToCStr<P>,
+        I: IntoIterator<Item = Expr>,
+    {
         let name = name.to_cstr_stash();
         let raw_expr = unsafe {
             let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.to_raw()).collect();
@@ -463,12 +470,11 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn host<P, N: ToCStr<P>, I: IntoIterator<Item=Expr>>(
-        &self, 
-        op: HostOp, 
-        name: Option<N>,
-        operands: I
-    ) -> Expr {
+    pub fn host<P, N, I>(&self, op: HostOp, name: Option<N>, operands: I) -> Expr
+    where
+        N: ToCStr<P>,
+        I: IntoIterator<Item = Expr>,
+    {
         let name = to_cstr_stash_option(name);
         let raw_expr = unsafe {
             let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.to_raw()).collect();
