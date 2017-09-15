@@ -1016,5 +1016,4 @@ mod tests {
 
         assert!(module.is_valid());
     }
-
 }
