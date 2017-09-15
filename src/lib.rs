@@ -463,10 +463,15 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn host<P, N: ToCStr<P>>(&self, op: HostOp, name: Option<N>, operands: &[Expr]) -> Expr {
+    pub fn host<P, N: ToCStr<P>, I: IntoIterator<Item=Expr>>(
+        &self, 
+        op: HostOp, 
+        name: Option<N>,
+        operands: I
+    ) -> Expr {
         let name = to_cstr_stash_option(name);
         let raw_expr = unsafe {
-            let mut operands_raw: Vec<_> = operands.iter().map(|ty| ty.to_raw()).collect();
+            let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.to_raw()).collect();
             ffi::BinaryenHost(
                 self.inner.raw,
                 op.into(),
