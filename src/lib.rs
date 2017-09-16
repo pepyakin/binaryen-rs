@@ -427,9 +427,6 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    // TODO: undefined ty?
-    // https://github.com/WebAssembly/binaryen/blob/master/src/binaryen-c.h#L272
-
     /// Evaluates each node in `children` one by one.
     ///
     /// Blocks may have names. Branch targets in the IR are resolved by name (as opposed to nesting depth in WebAssembly).
@@ -442,7 +439,7 @@ impl Module {
     /// let module = Module::new();
     ///
     /// let children = vec![module.nop()];
-    /// let block = module.block(Some("b1"), children, Ty::None);
+    /// let block = module.block(Some("b1"), children, Some(Ty::None));
     /// ```
     ///
     /// Breaking to a block will transfer control past the end of the block.
@@ -453,20 +450,24 @@ impl Module {
     /// // This will transfer control after the `b1` block.
     /// let br = module.break_("b1", None, None);
     /// ```
-    pub fn block<N, I>(&self, name: Option<N>, children: I, ty: Ty) -> Expr
+    pub fn block<N, I>(&self, name: Option<N>, children: I, ty: Option<Ty>) -> Expr
     where
         I: IntoIterator<Item = Expr>,
         N: ToCStr,
     {
         let name = to_cstr_stash_option(name);
         let raw_expr = unsafe {
+            let ty = match ty {
+                Some(ty) => ty.into(),
+                None => ffi::BinaryenUndefined(),
+            };
             let mut children_raw: Vec<_> = children.into_iter().map(|ty| ty.into_raw()).collect();
             ffi::BinaryenBlock(
                 self.inner.raw,
                 name.as_ptr(),
                 children_raw.as_mut_ptr(),
                 children_raw.len() as _,
-                ty.into(),
+                ty,
             )
         };
         Expr::from_raw(self, raw_expr)
@@ -1265,7 +1266,7 @@ mod tests {
         let expr = module.nop();
         let expr_copy = Expr::from_raw(&module, expr.raw);
 
-        module.block(None::<&str>, vec![expr, expr_copy], Ty::None);
+        module.block(None::<&str>, vec![expr, expr_copy], Some(Ty::None));
     }
 
     #[test]
