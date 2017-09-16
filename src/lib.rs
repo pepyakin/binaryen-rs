@@ -23,6 +23,7 @@ impl Drop for InnerModule {
     }
 }
 
+/// Modules contain lists of functions, imports, exports, function types.
 pub struct Module {
     inner: Rc<InnerModule>,
 }
@@ -1071,10 +1072,12 @@ impl From<BinaryOp> for ffi::BinaryenOp {
     }
 }
 
+/// A function type.
 pub struct FnType {
     raw: ffi::BinaryenFunctionTypeRef,
 }
 
+/// A function reference.
 pub struct FnRef {
     inner: ffi::BinaryenFunctionRef,
 }
@@ -1083,7 +1086,7 @@ pub struct FnRef {
 /// in local vars.
 ///
 /// Note that the value types I32 and I64 are not inherently signed or unsigned.
-// The interpretation of these types is determined by individual operators.
+/// The interpretation of these types is determined by individual operators.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum ValueTy {
     /// 32-bit integer
@@ -1099,6 +1102,10 @@ pub enum ValueTy {
     F64,
 }
 
+/// See ['ValueTy'].
+///
+/// ['ValueTy']: enum.ValueTy.html
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Ty {
     None,
 
