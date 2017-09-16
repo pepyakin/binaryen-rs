@@ -172,7 +172,7 @@ impl Module {
     /// let module = Module::new();
     ///
     /// // Roughly (u32, u64) -> ().
-    /// let viI = module.add_fn_type(Some("viI"), &[ValueTy::I32, ValueTy::I64], Ty::none());
+    /// let viI = module.add_fn_type(Some("viI"), &[ValueTy::I32, ValueTy::I64], Ty::None);
     ///
     /// # assert!(module.is_valid());
     /// ```
@@ -212,7 +212,7 @@ impl Module {
     ///
     /// // Add a new function type (u32, u32) -> u32.
     /// let params = &[ValueTy::I32, ValueTy::I32];
-    /// let iii = module.add_fn_type(Some("iii"), params, Ty::value(ValueTy::I32));
+    /// let iii = module.add_fn_type(Some("iii"), params, Ty::I32);
     ///
     /// // Load parameter x (local 0) and y (local 1) and do the addition.
     /// let x = module.get_local(0, ValueTy::I32);
@@ -283,7 +283,7 @@ impl Module {
     /// let module = Module::new();
     ///
     /// // Add a new function type () -> ().
-    /// let vv = module.add_fn_type(None::<&str>, &[], Ty::none());
+    /// let vv = module.add_fn_type(None::<&str>, &[], Ty::None);
     /// 
     /// // Add function called "_abort" from the module "env".
     /// // This module can call this function via name "abort".
@@ -321,7 +321,7 @@ impl Module {
     /// let module = Module::new();
     ///
     /// // Create a simple function that does nothing.
-    /// let vv = module.add_fn_type(None::<&str>, &[], Ty::none());
+    /// let vv = module.add_fn_type(None::<&str>, &[], Ty::None);
     /// let nop = module.nop();
     /// let do_nothing = module.add_fn("do_nothing", &vv, &[], nop);
     /// 
@@ -441,7 +441,7 @@ impl Module {
     /// let module = Module::new();
     ///
     /// let children = vec![module.nop()];
-    /// let block = module.block(Some("b1"), children, Ty::none());
+    /// let block = module.block(Some("b1"), children, Ty::None);
     /// ```
     ///
     /// Breaking to a block will transfer control past the end of the block.
@@ -591,7 +591,8 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call<N, I>(&self, name: N, operands: I) -> Expr
+    /// Evaluate all operands one by one and then call function defined in the current module.
+    pub fn call<N, I>(&self, name: N, operands: I, ty: Ty) -> Expr
     where
         N: ToCStr,
         I: IntoIterator<Item = Expr>,
@@ -604,7 +605,27 @@ impl Module {
                 name.as_ptr(),
                 operands_raw.as_mut_ptr(),
                 operands_raw.len() as _,
-                ffi::BinaryenNone(),
+                ty.into(),
+            )
+        };
+        Expr::from_raw(self, raw_expr)
+    }
+
+    /// Evaluate all operands one by one and then call imported function.
+    pub fn call_import<N, I>(&self, name: N, operands: I, ty: Ty) -> Expr
+    where
+        N: ToCStr,
+        I: IntoIterator<Item = Expr>,
+    {
+        let name = name.to_cstr_stash();
+        let raw_expr = unsafe {
+            let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.into_raw()).collect();
+            ffi::BinaryenCallImport(
+                self.inner.raw,
+                name.as_ptr(),
+                operands_raw.as_mut_ptr(),
+                operands_raw.len() as _,
+                ty.into(),
             )
         };
         Expr::from_raw(self, raw_expr)
@@ -629,25 +650,18 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn call_import<N, I>(&self, name: N, operands: I, ty: Ty) -> Expr
-    where
-        N: ToCStr,
-        I: IntoIterator<Item = Expr>,
-    {
-        let name = name.to_cstr_stash();
-        let raw_expr = unsafe {
-            let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.into_raw()).collect();
-            ffi::BinaryenCallImport(
-                self.inner.raw,
-                name.as_ptr(),
-                operands_raw.as_mut_ptr(),
-                operands_raw.len() as _,
-                ty.into(),
-            )
-        };
-        Expr::from_raw(self, raw_expr)
-    }
-
+    /// Evaluate `lhs`, then `rhs` and then do a binary operation with them.
+    ///
+    /// # Examples
+    /// 
+    /// ```
+    /// # use binaryen::*;
+    /// let module = Module::new();
+    ///
+    /// let x = module.get_local(0, ValueTy::I32);
+    /// let y = module.const_(Literal::I32(3));
+    /// let mul_by_3 = module.binary(BinaryOp::MulI32, x, y);
+    /// ```
     pub fn binary(&self, op: BinaryOp, lhs: Expr, rhs: Expr) -> Expr {
         let raw_expr = unsafe {
             ffi::BinaryenBinary(self.inner.raw, op.into(), lhs.into_raw(), rhs.into_raw())
@@ -655,8 +669,19 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    pub fn unary(&self, op: UnaryOp, val: Expr) -> Expr {
-        let raw_expr = unsafe { ffi::BinaryenUnary(self.inner.raw, op.into(), val.into_raw()) };
+    /// Evaluate `value` and then do a unary operation with it.
+    ///
+    /// # Examples
+    /// 
+    /// ```
+    /// # use binaryen::*;
+    /// let module = Module::new();
+    ///
+    /// let x = module.get_local(0, ValueTy::F64);
+    /// let square_root = module.unary(UnaryOp::SqrtF64, x);
+    /// ```
+    pub fn unary(&self, op: UnaryOp, value: Expr) -> Expr {
+        let raw_expr = unsafe { ffi::BinaryenUnary(self.inner.raw, op.into(), value.into_raw()) };
         Expr::from_raw(self, raw_expr)
     }
 
@@ -1056,23 +1081,62 @@ pub struct FnRef {
 
 /// Type of the values. For example, these can be found on a stack and
 /// in local vars.
-#[derive(Copy, Clone)]
+///
+/// Note that the value types I32 and I64 are not inherently signed or unsigned.
+// The interpretation of these types is determined by individual operators.
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum ValueTy {
+    /// 32-bit integer
     I32,
+
+    /// 64-bit integer
     I64,
+
+    /// 32-bit floating point
     F32,
+
+    /// 64-bit floating point
     F64,
 }
 
-pub struct Ty(Option<ValueTy>);
+pub enum Ty {
+    None,
 
-impl Ty {
-    pub fn none() -> Ty {
-        Ty(None)
+    /// 32-bit integer
+    I32,
+
+    /// 64-bit integer
+    I64,
+
+    /// 32-bit floating point
+    F32,
+
+    /// 64-bit floating point
+    F64,
+}
+
+impl From<ValueTy> for Ty {
+    fn from(value_ty: ValueTy) -> Ty {
+        match value_ty {
+            ValueTy::I32 => Ty::I32,
+            ValueTy::I64 => Ty::I64,
+            ValueTy::F32 => Ty::F32,
+            ValueTy::F64 => Ty::F64,
+        }
     }
+}
 
-    pub fn value(ty: ValueTy) -> Ty {
-        Ty(Some(ty))
+impl From<Ty> for ffi::BinaryenType {
+    fn from(ty: Ty) -> ffi::BinaryenType {
+        unsafe {
+            match ty {
+                Ty::None => ffi::BinaryenNone(),
+                Ty::I32 => ffi::BinaryenInt32(),
+                Ty::I64 => ffi::BinaryenInt64(),
+                Ty::F32 => ffi::BinaryenFloat32(),
+                Ty::F64 => ffi::BinaryenFloat64(),
+            }
+        }
     }
 }
 
@@ -1085,15 +1149,6 @@ impl From<ValueTy> for ffi::BinaryenType {
                 ValueTy::F32 => ffi::BinaryenFloat32(),
                 ValueTy::F64 => ffi::BinaryenFloat64(),
             }
-        }
-    }
-}
-
-impl From<Ty> for ffi::BinaryenType {
-    fn from(ty: Ty) -> ffi::BinaryenType {
-        match ty.0 {
-            Some(ty) => ty.into(),
-            None => unsafe { ffi::BinaryenNone() },
         }
     }
 }
@@ -1152,7 +1207,7 @@ mod tests {
         let module = Module::new();
 
         let params = &[ValueTy::I32, ValueTy::I32];
-        let iii = module.add_fn_type(Some("iii"), params, Ty::value(ValueTy::I32));
+        let iii = module.add_fn_type(Some("iii"), params, Ty::I32);
 
         let x = module.get_local(0, ValueTy::I32);
         let y = module.get_local(1, ValueTy::I32);
@@ -1174,7 +1229,7 @@ mod tests {
             module.set_memory(1, 1, Some("mem"), segments);
         }
 
-        let main_fn_ty = module.add_fn_type(Some("main_fn_ty"), &[], Ty::none());
+        let main_fn_ty = module.add_fn_type(Some("main_fn_ty"), &[], Ty::None);
         let nop = module.nop();
         let main = module.add_fn("main", &main_fn_ty, &[], nop);
         module.set_start(&main);
@@ -1203,7 +1258,7 @@ mod tests {
         let expr = module.nop();
         let expr_copy = Expr::from_raw(&module, expr.raw);
 
-        module.block(None::<&str>, vec![expr, expr_copy], Ty::none());
+        module.block(None::<&str>, vec![expr, expr_copy], Ty::None);
     }
 
     #[test]
@@ -1211,8 +1266,8 @@ mod tests {
         let module = Module::new();
 
         let params = &[];
-        let return_i32 = module.add_fn_type(None::<&str>, params, Ty::value(ValueTy::I32));
-        let _ = module.add_fn_type(Some("return_i64"), params, Ty::value(ValueTy::I64));
+        let return_i32 = module.add_fn_type(None::<&str>, params, Ty::I32);
+        let _ = module.add_fn_type(Some("return_i64"), params, Ty::I64);
 
         let unreachable = module.unreachable();
 
