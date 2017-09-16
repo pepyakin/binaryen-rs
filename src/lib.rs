@@ -252,11 +252,11 @@ impl Module {
     /// See http://webassembly.org/docs/modules/#global-section
     ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// # use binaryen::*;
     /// let module = Module::new();
-    /// 
+    ///
     /// let init_expr = module.const_(Literal::I32(0));
     /// module.add_global("counter", ValueTy::I32, true, init_expr);
     ///
@@ -276,16 +276,16 @@ impl Module {
     }
 
     /// Add a function import.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// # use binaryen::*;
     /// let module = Module::new();
     ///
     /// // Add a new function type () -> ().
     /// let vv = module.add_fn_type(None::<&str>, &[], Ty::None);
-    /// 
+    ///
     /// // Add function called "_abort" from the module "env".
     /// // This module can call this function via name "abort".
     /// module.add_fn_import("abort", "env", "_abort", &vv);
@@ -314,9 +314,9 @@ impl Module {
     }
 
     /// Add a function export.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// # use binaryen::*;
     /// let module = Module::new();
@@ -325,7 +325,7 @@ impl Module {
     /// let vv = module.add_fn_type(None::<&str>, &[], Ty::None);
     /// let nop = module.nop();
     /// let do_nothing = module.add_fn("do_nothing", &vv, &[], nop);
-    /// 
+    ///
     /// // Export "do_nothing" function with an external name "_do_nothing".
     /// module.add_fn_export("do_nothing", "_do_nothing");
     ///
@@ -359,12 +359,12 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    /// Evaluates `body`. 
+    /// Evaluates `body`.
     ///
-    /// Loop provides a name which can be used together with `break_` to make a loop. 
+    /// Loop provides a name which can be used together with `break_` to make a loop.
     /// Breaking to a loop will transfer control at the start of the loop,
     /// which is roughly equivalent to `continue` statement.
-    /// 
+    ///
     /// # Examples
     ///
     /// ```
@@ -389,9 +389,9 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// # use binaryen::*;
     /// let module = Module::new();
@@ -428,8 +428,10 @@ impl Module {
     }
 
     /// Evaluates each node in `children` one by one.
+    /// You can provide type of this block via `ty`, otherwise type would be figured out for you.
     ///
-    /// Blocks may have names. Branch targets in the IR are resolved by name (as opposed to nesting depth in WebAssembly).
+    /// Blocks may have names. Branch targets in the IR are resolved
+    /// by name (as opposed to nesting depth in WebAssembly).
     /// This is the only IR node that has a variable-length list of operands.
     ///
     /// # Examples
@@ -479,7 +481,8 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    /// Evaluates `ptr`, loads value of type `ty` at the address provided by `ptr` offseted by `offset`.
+    /// Evaluates `ptr`, loads value of type `ty` at the address
+    /// provided by `ptr` offseted by `offset`.
     pub fn load(
         &self,
         bytes: u32,
@@ -503,7 +506,8 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    /// Evaluates `ptr` and `value`, stores `value` at the address provided by `ptr` offseted by `offset`.
+    /// Evaluates `ptr` and `value`, stores `value` at the address
+    /// provided by `ptr` offseted by `offset`.
     pub fn store(
         &self,
         bytes: u32,
@@ -545,7 +549,7 @@ impl Module {
     /// Loads value from a local with a specified index.
     ///
     /// Note that function parameters and variables share a single locals index space, so
-    /// if a function has one parameter then it would be 
+    /// if a function has one parameter then it would be
     /// at index 0 and first variable would be at index 1.
     pub fn get_local(&self, index: u32, ty: ValueTy) -> Expr {
         let raw_expr = unsafe {
@@ -555,9 +559,9 @@ impl Module {
     }
 
     /// Evaluates `value` and stores that value into a local with a specified index.
-    /// 
+    ///
     /// Note that function parameters and variables share a single locals index space, so
-    /// if a function has one parameter then it would be 
+    /// if a function has one parameter then it would be
     /// at index 0 and first variable would be at index 1.
     pub fn set_local(&self, index: u32, value: Expr) -> Expr {
         let raw_expr = unsafe {
@@ -655,7 +659,7 @@ impl Module {
     /// Evaluate `lhs`, then `rhs` and then do a binary operation with them.
     ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// # use binaryen::*;
     /// let module = Module::new();
@@ -674,7 +678,7 @@ impl Module {
     /// Evaluate `value` and then do a unary operation with it.
     ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// # use binaryen::*;
     /// let module = Module::new();
@@ -714,7 +718,7 @@ impl Module {
 
     /// Instruction that always traps and have type of `unreachable`.
     /// This has an interesting consequences on the type system, for example:
-    /// 
+    ///
     /// ```ignore
     /// (func $test (result i32)
     ///   (call $return_i64
@@ -722,13 +726,13 @@ impl Module {
     ///   )
     /// )
     /// ```
-    /// 
+    ///
     /// Function `test` is expected to return i32, but it calls some function that returns i64.
-    /// Passing `unreachable` as argument to a function makes this function to 
+    /// Passing `unreachable` as argument to a function makes this function to
     /// also have `unreachable` type.
-    /// 
-    /// Because `unreachable` is a bottom type (i.e. can be used in place every other type) this example
-    /// is perfectly valid.
+    ///
+    /// Because `unreachable` is a bottom type (i.e. can be used in
+    /// place every other type) this example is perfectly valid.
     pub fn unreachable(&self) -> Expr {
         let raw_expr = unsafe { ffi::BinaryenUnreachable(self.inner.raw) };
         Expr::from_raw(self, raw_expr)

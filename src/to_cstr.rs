@@ -116,7 +116,9 @@ mod tests {
 
     #[test]
     fn test_to_cstr_stash_option() {
-        assert!(!to_cstr_stash_option(Some("hello world")).as_ptr().is_null());
+        assert!(!to_cstr_stash_option(Some("hello world"))
+            .as_ptr()
+            .is_null());
         assert!(to_cstr_stash_option(None::<&str>).as_ptr().is_null());
     }
 }
