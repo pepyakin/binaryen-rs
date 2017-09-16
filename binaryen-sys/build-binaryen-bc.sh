@@ -33,6 +33,7 @@ EMCC_ARGS="$EMCC_ARGS -s DISABLE_EXCEPTION_CATCHING=0" # Exceptions are thrown a
   src/binaryen-c.cpp \
   src/ast/ExpressionAnalyzer.cpp \
   src/ast/ExpressionManipulator.cpp \
+  src/ast/LocalGraph.cpp \
   src/passes/pass.cpp \
   src/passes/CoalesceLocals.cpp \
   src/passes/CodeFolding.cpp \
@@ -41,6 +42,7 @@ EMCC_ARGS="$EMCC_ARGS -s DISABLE_EXCEPTION_CATCHING=0" # Exceptions are thrown a
   src/passes/DuplicateFunctionElimination.cpp \
   src/passes/ExtractFunction.cpp \
   src/passes/FlattenControlFlow.cpp \
+  src/passes/I64ToI32Lowering.cpp \
   src/passes/Inlining.cpp \
   src/passes/InstrumentLocals.cpp \
   src/passes/InstrumentMemory.cpp \
@@ -66,6 +68,8 @@ EMCC_ARGS="$EMCC_ARGS -s DISABLE_EXCEPTION_CATCHING=0" # Exceptions are thrown a
   src/passes/ReorderFunctions.cpp \
   src/passes/ReorderLocals.cpp \
   src/passes/ReReloop.cpp \
+  src/passes/ConstHoisting.cpp \
+  src/passes/SafeHeap.cpp \
   src/passes/SSAify.cpp \
   src/passes/SimplifyLocals.cpp \
   src/passes/Untee.cpp \
