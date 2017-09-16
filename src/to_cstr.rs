@@ -2,6 +2,7 @@ use std::ffi::{CStr, CString};
 use std::ptr;
 use std::os::raw::c_char;
 
+/// A `Stash` contains the temporary storage of C string and a pointer into it.
 pub struct Stash<T> {
     pub storage: T,
     pub ptr: *const c_char,
@@ -12,13 +13,24 @@ impl<T> Stash<T> {
         Stash { storage, ptr }
     }
 
+    /// Returns the pointer to the C string.
+    /// This pointer is valid only while this Stash is around.
     pub fn as_ptr(&self) -> *const c_char {
         self.ptr
     }
 }
 
+/// This trait provides a means for converting various types of strings into
+/// a pointer that can be passed into C code.
+///
+/// If you have a CString/&CStr you can use it to pass a C string pointer directly,
+/// without conversion. Otherwise, you can sacrifice your String to convert it into CString.
 pub trait ToCStr {
     type Storage;
+
+    /// Make conversion to a C string (if needed) and then return
+    /// a `Stash` — a pointer to the C string alongside with
+    /// a storage which "owns" the data it points to.
     fn to_cstr_stash(self) -> Stash<Self::Storage>;
 }
 
@@ -28,14 +40,6 @@ impl<'a> ToCStr for &'a CStr {
         let r = self.as_ref();
         let ptr = r.as_ptr();
         Stash::new(r, ptr)
-    }
-}
-
-impl ToCStr for CString {
-    type Storage = CString;
-    fn to_cstr_stash(self) -> Stash<CString> {
-        let ptr = self.as_ptr();
-        Stash::new(self, ptr)
     }
 }
 
@@ -106,8 +110,13 @@ mod tests {
 
         do_stuff("&str");
 
-
         do_stuff(&*CString::new("&*CString").unwrap());
         do_stuff(&*CString::new("&*CString, as_c_str()").unwrap().as_c_str());
+    }
+
+    #[test]
+    fn test_to_cstr_stash_option() {
+        assert!(!to_cstr_stash_option(Some("hello world")).as_ptr().is_null());
+        assert!(to_cstr_stash_option(None::<&str>).as_ptr().is_null());
     }
 }
