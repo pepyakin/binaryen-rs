@@ -5,3 +5,5 @@
 [Binaryen](https://github.com/WebAssembly/binaryen) bindings for Rust.
 
 Currently it is **work in progress**: this means that not all binaryen APIs are available and there might be problems with soundness.
+
+See also: [emchipten](https://github.com/pepyakin/emchipten) - play bed for this project.
