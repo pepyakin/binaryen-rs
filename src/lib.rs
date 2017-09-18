@@ -1165,7 +1165,6 @@ impl From<ValueTy> for ffi::BinaryenType {
     }
 }
 
-#[derive(Clone)]
 pub struct Expr {
     _module_ref: Rc<InnerModule>,
     raw: ffi::BinaryenExpressionRef,
