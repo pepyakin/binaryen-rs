@@ -29,7 +29,7 @@ pub struct Module {
 }
 
 impl Module {
-    /// Creates a new empty Module.
+    /// Create a new empty Module.
     pub fn new() -> Module {
         let raw = unsafe { ffi::BinaryenModuleCreate() };
         Module::from_raw(raw)
@@ -343,7 +343,7 @@ impl Module {
         }
     }
 
-    /// Evaluates `condition`, and if `condition` yields non-zero value `if_true` is executed.
+    /// Evaluate `condition`, and if `condition` yields non-zero value `if_true` is executed.
     /// If `condition` yielded zero value and `if_false` is not `None` then `if_false` is executed.
     pub fn if_(&self, condition: Expr, if_true: Expr, if_false: Option<Expr>) -> Expr {
         let raw_expr = unsafe {
@@ -359,7 +359,7 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    /// Evaluates `body`.
+    /// Evaluate `body`.
     ///
     /// Loop provides a name which can be used together with `break_` to make a loop.
     /// Breaking to a loop will transfer control at the start of the loop,
@@ -427,7 +427,7 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    /// Evaluates each node in `children` one by one.
+    /// Evaluate each node in `children` one by one.
     /// You can provide type of this block via `ty`, otherwise type would be figured out for you.
     ///
     /// Blocks may have names. Branch targets in the IR are resolved
@@ -475,13 +475,13 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    /// Yields specified literal.
+    /// Yield specified literal.
     pub fn const_(&self, literal: Literal) -> Expr {
         let raw_expr = unsafe { ffi::BinaryenConst(self.inner.raw, literal.into()) };
         Expr::from_raw(self, raw_expr)
     }
 
-    /// Evaluates `ptr`, loads value of type `ty` at the address
+    /// Evaluate `ptr`, load value of type `ty` at the address
     /// provided by `ptr` offseted by `offset`.
     pub fn load(
         &self,
@@ -506,7 +506,7 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    /// Evaluates `ptr` and `value`, stores `value` at the address
+    /// Evaluate `ptr` and `value`, store `value` at the address
     /// provided by `ptr` offseted by `offset`.
     pub fn store(
         &self,
@@ -531,14 +531,14 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    /// Loads value from a global with a specified name.
+    /// Load value from a global with a specified name.
     pub fn get_global<N: ToCStr>(&self, name: N, ty: ValueTy) -> Expr {
         let name = name.to_cstr_stash();
         let raw_expr = unsafe { ffi::BinaryenGetGlobal(self.inner.raw, name.as_ptr(), ty.into()) };
         Expr::from_raw(self, raw_expr)
     }
 
-    /// Evaluates `value` and stores that value to a global with a specified name.
+    /// Evaluate `value` and store that value to a global with a specified name.
     pub fn set_global<N: ToCStr>(&self, name: N, value: Expr) -> Expr {
         let name = name.to_cstr_stash();
         let raw_expr =
@@ -546,7 +546,7 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    /// Loads value from a local with a specified index.
+    /// Load value from a local with a specified index.
     ///
     /// Note that function parameters and variables share a single locals index space, so
     /// if a function has one parameter then it would be
@@ -558,7 +558,7 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    /// Evaluates `value` and stores that value into a local with a specified index.
+    /// Evaluate `value` and store that value into a local with a specified index.
     ///
     /// Note that function parameters and variables share a single locals index space, so
     /// if a function has one parameter then it would be
@@ -588,7 +588,7 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    /// Returns control from the current function, optionally returning `value`.
+    /// Return control from the current function, optionally returning `value`.
     pub fn return_(&self, value: Option<Expr>) -> Expr {
         let raw_expr = unsafe {
             let raw_value = value.map_or(ptr::null_mut(), |v| v.into_raw());
@@ -803,6 +803,14 @@ impl<'a> Segment<'a> {
     }
 }
 
+/// Operation that takes a single input operand and returns result.
+///
+/// See: 
+///
+/// * [`Module#binary`].
+/// * https://webassembly.github.io/spec/appendix/index-instructions.html
+///
+/// [`Module#binary`]: struct.Module.html#method.binary
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum UnaryOp {
     ClzI32,
@@ -911,6 +919,14 @@ impl From<UnaryOp> for ffi::BinaryenOp {
     }
 }
 
+/// Operation that takes two input operands and returns result.
+///
+/// See: 
+///
+/// * [`Module#unary`].
+/// * https://webassembly.github.io/spec/appendix/index-instructions.html
+///
+/// [`Module#unary`]: struct.Module.html#method.unary
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum BinaryOp {
     AddI32,
