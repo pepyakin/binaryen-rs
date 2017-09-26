@@ -1,6 +1,8 @@
 # binaryen-rs
 
-[![Build Status](https://travis-ci.org/pepyakin/binaryen-rs.svg?branch=master)](https://travis-ci.org/pepyakin/binaryen-rs)
+[![Build Status](https://travis-ci.org/pepyakin/binaryen-rs.svg?branch=master)](https://travis-ci.org/pepyakin/binaryen-rs) 
+[![crates.io](https://img.shields.io/crates/v/binaryen.svg)](https://crates.io/crates/binaryen)
+[![docs.rs](https://docs.rs/binaryen/badge.svg)](https://docs.rs/binaryen/)
 
 [Binaryen](https://github.com/WebAssembly/binaryen) bindings for Rust.
 
