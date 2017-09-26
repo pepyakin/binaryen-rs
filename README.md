@@ -1,4 +1,4 @@
-# binaryen-rs
+# `binaryen-rs`
 
 [![Build Status](https://travis-ci.org/pepyakin/binaryen-rs.svg?branch=master)](https://travis-ci.org/pepyakin/binaryen-rs) 
 [![crates.io](https://img.shields.io/crates/v/binaryen.svg)](https://crates.io/crates/binaryen)
@@ -6,7 +6,11 @@
 
 [Binaryen](https://github.com/WebAssembly/binaryen) bindings for Rust.
 
-View the full [API documentation](https://docs.rs/binaryen/).
+With Binaryen you can create optimized [WebAssembly](http://webassembly.org/) modules.
+
+For example what you can create with Binaryen you can check out [DEMO](https://pepyakin.github.io/emchipten/)*. Yes, this is [CHIP-8](https://en.wikipedia.org/wiki/CHIP-8) roms compiled straight to the WebAssembly. See [emchipten](https://github.com/pepyakin/emchipten) test bed for this project.
+
+(*) Modern browser required
 
 ## Example
 
@@ -32,5 +36,3 @@ fn main() {
     module.print();
 }
 ```
-
-See also: [emchipten](https://github.com/pepyakin/emchipten) - play bed for this project.
