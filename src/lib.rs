@@ -31,18 +31,21 @@ pub struct Module {
 impl Module {
     /// Create a new empty Module.
     pub fn new() -> Module {
-        let raw = unsafe { ffi::BinaryenModuleCreate() };
-        Module::from_raw(raw)
+        unsafe { 
+            let raw = ffi::BinaryenModuleCreate();
+            Module::from_raw(raw)
+        }
     }
 
     /// Deserialize a module from binary form.
     pub fn read(wasm_buf: &[u8]) -> Module {
-        let raw =
-            unsafe { ffi::BinaryenModuleRead(wasm_buf.as_ptr() as *mut c_char, wasm_buf.len()) };
-        Module::from_raw(raw)
+        unsafe { 
+            let raw = ffi::BinaryenModuleRead(wasm_buf.as_ptr() as *mut c_char, wasm_buf.len());
+            Module::from_raw(raw)
+        }
     }
 
-    pub fn from_raw(raw: ffi::BinaryenModuleRef) -> Module {
+    pub unsafe fn from_raw(raw: ffi::BinaryenModuleRef) -> Module {
         Module {
             inner: Rc::new(InnerModule { raw }),
         }
