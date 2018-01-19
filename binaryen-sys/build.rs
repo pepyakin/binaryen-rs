@@ -1,5 +1,6 @@
 extern crate bindgen;
 extern crate cmake;
+extern crate cc;
 
 use std::env;
 use std::path::{Path, PathBuf};
@@ -67,6 +68,15 @@ fn main() {
     if let Some(cpp_stdlib) = get_cpp_stdlib() {
         println!("cargo:rustc-link-lib={}", cpp_stdlib);
     }
+
+    let mut cfg = cc::Build::new();
+    cfg.file("Shim.cpp")
+        .include("binaryen/src")
+        .cpp_link_stdlib(None)
+        .warnings(false)
+        .cpp(true)
+        .flag("-std=c++11")
+        .compile("binaryen_shim");
 }
 
 // See https://github.com/alexcrichton/gcc-rs/blob/88ac58e25/src/lib.rs#L1197

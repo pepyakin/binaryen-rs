@@ -4,11 +4,28 @@
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
+use std::os::raw::c_void;
+
+extern "C" {
+    #[no_mangle]
+    pub fn translateToFuzz(data: *const c_void, len: usize) -> BinaryenModuleRef;
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::ffi::CString;
     use std::ptr;
+
+    #[test]
+    fn test_fuzz() {
+        let vec: Vec<u8> = vec![0, 1, 2, 3, 4, 5];
+        unsafe {
+            let module = translateToFuzz(vec.as_ptr() as *const c_void, vec.len());
+            let result = BinaryenModuleValidate(module);
+            assert!(result != 0);
+        }
+    }
 
     #[test]
     fn test_sanity() {

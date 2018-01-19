@@ -1,5 +1,8 @@
 pub extern crate binaryen_sys;
 
+#[cfg(test)]
+extern crate rand;
+
 pub use binaryen_sys as ffi;
 
 use std::rc::Rc;
@@ -8,6 +11,7 @@ use std::ptr;
 
 mod to_cstr;
 mod relooper;
+pub mod tools;
 
 use to_cstr::{to_cstr_stash_option, Stash};
 pub use to_cstr::ToCStr;
