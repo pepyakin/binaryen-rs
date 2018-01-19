@@ -3,7 +3,9 @@
 #include <cstring>
 #include "asm_v_wasm.h"
 #include "support/file.h"
-#include "tools/translate-to-fuzz.h"
+#include "pass.h"
+#include "tools/optimization-options.h"
+#include "tools/fuzzing.h"
 #include "binaryen-c.h"
 
 using namespace wasm;
@@ -15,8 +17,8 @@ extern "C" BinaryenModuleRef translateToFuzz(const char *data, size_t len) {
     input.resize(len);
     memcpy(&input[0], data, len);
 
-    TranslateToFuzzReader reader(*module);
-    reader.read_data(input);
+    TranslateToFuzzReader reader(*module, input);
+    reader.build();
 
     return module;
 }
