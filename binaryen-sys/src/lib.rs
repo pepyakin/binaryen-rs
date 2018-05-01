@@ -8,7 +8,7 @@ use std::os::raw::c_void;
 
 extern "C" {
     #[no_mangle]
-    pub fn translateToFuzz(data: *const c_void, len: usize) -> BinaryenModuleRef;
+    pub fn translateToFuzz(data: *const c_void, len: usize, emitAtomics:bool) -> BinaryenModuleRef;
 }
 
 #[cfg(test)]
@@ -21,7 +21,7 @@ mod tests {
     fn test_fuzz() {
         let vec: Vec<u8> = vec![0, 1, 2, 3, 4, 5];
         unsafe {
-            let module = translateToFuzz(vec.as_ptr() as *const c_void, vec.len());
+            let module = translateToFuzz(vec.as_ptr() as *const c_void, vec.len(), true);
             let result = BinaryenModuleValidate(module);
             assert!(result != 0);
         }

@@ -13,7 +13,7 @@
 
 using namespace wasm;
 
-extern "C" BinaryenModuleRef translateToFuzz(const char *data, size_t len) {
+extern "C" BinaryenModuleRef translateToFuzz(const char *data, size_t len, bool emitAtomics = true) {
     auto module = new Module();
 
     std::vector<char> input;
@@ -21,14 +21,7 @@ extern "C" BinaryenModuleRef translateToFuzz(const char *data, size_t len) {
     memcpy(&input[0], data, len);
 
     TranslateToFuzzReader reader(*module, input);
-    reader.build();
-
-    // Temporary hack to avoid generating Atomics
-    if (!WasmValidator().validate(*module, (FeatureSet) Feature::MVP)) {
-        std::cerr << "Invalid module (wrt. Feature::MVP)";
-        delete module;
-        return new Module();
-    }
+    reader.build(emitAtomics);
 
     return module;
 }
