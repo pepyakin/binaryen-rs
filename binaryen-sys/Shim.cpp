@@ -8,9 +8,12 @@
 #include "tools/fuzzing.h"
 #include "binaryen-c.h"
 
+#include "wasm.h"           // For Feature enum
+#include "wasm-validator.h" // For WasmValidator
+
 using namespace wasm;
 
-extern "C" BinaryenModuleRef translateToFuzz(const char *data, size_t len) {
+extern "C" BinaryenModuleRef translateToFuzz(const char *data, size_t len, bool emitAtomics) {
     auto module = new Module();
 
     std::vector<char> input;
@@ -18,7 +21,7 @@ extern "C" BinaryenModuleRef translateToFuzz(const char *data, size_t len) {
     memcpy(&input[0], data, len);
 
     TranslateToFuzzReader reader(*module, input);
-    reader.build();
+    reader.build(emitAtomics);
 
     return module;
 }
