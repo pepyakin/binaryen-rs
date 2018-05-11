@@ -37,6 +37,7 @@ pub fn translate_to_fuzz_mvp(seed: &[u8]) -> Module {
 #[cfg(test)]
 mod tests {
     use super::translate_to_fuzz;
+    use super::translate_to_fuzz_mvp;
     use rand::{self, Rng};
 
     #[test]
@@ -57,7 +58,7 @@ mod tests {
         for _ in 0..1000 {
             let mut rng = rand::thread_rng();
             rng.fill_bytes(&mut seed);
-            let module = translate_to_fuzz(&seed);
+            let module = translate_to_fuzz_mvp(&seed);
 
             assert!(module.is_valid());
         }

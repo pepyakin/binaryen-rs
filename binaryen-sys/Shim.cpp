@@ -13,7 +13,7 @@
 
 using namespace wasm;
 
-extern "C" BinaryenModuleRef translateToFuzz(const char *data, size_t len, bool emitAtomics = true) {
+extern "C" BinaryenModuleRef translateToFuzz(const char *data, size_t len, bool emitAtomics) {
     auto module = new Module();
 
     std::vector<char> input;
