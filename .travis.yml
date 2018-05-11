@@ -3,11 +3,18 @@ language: rust
 
 rust:
   - nightly
+  - stable
 notifications:
   email:
     - s.pepyakin@gmail.com
 before_script:
   - rustc --version
   - cargo --version
+env:
+  - CC=clang CXX=clang++
+  - CC=gcc CXX=g++
 script:
-  - CC=clang CXX=clang++ cargo test --all --verbose
+  - cargo build --all --verbose
+  # Run tests with --test-threads=1 as it looks like the linker runs out of memory
+  # when linking doctests in parallel.
+  - cargo test --all --verbose -- --test-threads=1
