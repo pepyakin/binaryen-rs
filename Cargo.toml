@@ -12,7 +12,7 @@ categories = ["api-bindings"]
 keywords = ["binaryen", "webassembly", "wasm", "compiler"]
 
 [dependencies]
-binaryen-sys = { path = "binaryen-sys", version = "0.3.0" }
+binaryen-sys = { path = "binaryen-sys", version = "0.4.0" }
 
 [dev-dependencies]
 rand = "0.4.2"
