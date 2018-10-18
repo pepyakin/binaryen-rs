@@ -38,7 +38,7 @@ pub fn translate_to_fuzz_mvp(seed: &[u8]) -> Module {
 mod tests {
     use super::translate_to_fuzz;
     use super::translate_to_fuzz_mvp;
-    use rand::{self, Rng};
+    use rand::{self, RngCore};
 
     #[test]
     fn test_translate_to_fuzz() {
