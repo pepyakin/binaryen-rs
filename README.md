@@ -4,7 +4,7 @@
 [![crates.io](https://img.shields.io/crates/v/binaryen.svg)](https://crates.io/crates/binaryen)
 [![docs.rs](https://docs.rs/binaryen/badge.svg)](https://docs.rs/binaryen/)
 
-[Binaryen](https://github.com/WebAssembly/binaryen) bindings for Rust.
+[Binaryen](https://github.com/WebAssembly/binaryen) bindings for Rust. These bindings wrap binaryen C API very closly and at times might be not very idiomatic. For example, binaryen can **abort** your program if used incorrectly. 
 
 With Binaryen you can create optimized [WebAssembly](http://webassembly.org/) modules.
 
