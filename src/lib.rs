@@ -7,7 +7,7 @@ pub use binaryen_sys as ffi;
 
 use std::rc::Rc;
 use std::os::raw::c_char;
-use std::ptr;
+use std::{ptr, slice};
 use std::sync::{Once, Mutex};
 
 mod to_cstr;
@@ -136,22 +136,25 @@ impl Module {
     /// let wasm = module.write();
     /// ```
     pub fn write(&self) -> Vec<u8> {
-        const MAX_CAPACITY: usize = 1024 * 1024 * 2;
-        let mut buf: Vec<u8> = Vec::with_capacity(MAX_CAPACITY);
         unsafe {
-            let written = ffi::BinaryenModuleWrite(
-                self.inner.raw,
-                buf.as_mut_ptr() as *mut c_char,
-                MAX_CAPACITY,
-            );
-            if written == buf.capacity() {
-                // TODO:
-                panic!("unimplemented");
-            }
-            buf.set_len(written);
-        };
-        buf.shrink_to_fit();
-        buf
+            let write_result = ffi::BinaryenModuleAllocateAndWrite(self.inner.raw, ptr::null());
+
+            // Create a slice from the resulting array and then copy it in vector.
+            let binary_slice = if write_result.binaryBytes == 0 {
+                &[]
+            } else {
+                slice::from_raw_parts(
+                    write_result.binary as *const u8, 
+                    write_result.binaryBytes
+                )
+            };
+            let binary_buf = binary_slice.to_vec();
+
+            // This will free buffers in the write_result.
+            ffi::BinaryenShimDisposeBinaryenModuleAllocateAndWriteResult(write_result);
+
+            binary_buf
+        }
     }
 
     /// Set start function. One per module.

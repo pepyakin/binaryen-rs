@@ -25,3 +25,14 @@ extern "C" BinaryenModuleRef translateToFuzz(const char *data, size_t len, bool 
 
     return module;
 }
+
+extern "C" void BinaryenShimDisposeBinaryenModuleAllocateAndWriteResult(
+    BinaryenModuleAllocateAndWriteResult result
+) {
+    if (result.binary) {
+        free(result.binary);
+    }
+    if (result.sourceMap) {
+        free(result.sourceMap);
+    }
+}
