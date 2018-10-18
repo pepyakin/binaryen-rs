@@ -161,6 +161,7 @@ impl Module {
                 offset_exprs.as_mut_ptr(),
                 sizes.as_mut_ptr(),
                 segments_count as _,
+                0, 
             )
         }
     }
@@ -310,7 +311,7 @@ impl Module {
         let external_module_name = external_module_name.to_cstr_stash();
         let external_base_name = external_base_name.to_cstr_stash();
         unsafe {
-            ffi::BinaryenAddImport(
+            ffi::BinaryenAddFunctionImport(
                 self.inner.raw,
                 internal_name.as_ptr(),
                 external_module_name.as_ptr(),
@@ -624,26 +625,6 @@ impl Module {
         Expr::from_raw(self, raw_expr)
     }
 
-    /// Evaluate all operands one by one and then call imported function.
-    pub fn call_import<N, I>(&self, name: N, operands: I, ty: Ty) -> Expr
-    where
-        N: ToCStr,
-        I: IntoIterator<Item = Expr>,
-    {
-        let name = name.to_cstr_stash();
-        let raw_expr = unsafe {
-            let mut operands_raw: Vec<_> = operands.into_iter().map(|ty| ty.into_raw()).collect();
-            ffi::BinaryenCallImport(
-                self.inner.raw,
-                name.as_ptr(),
-                operands_raw.as_mut_ptr(),
-                operands_raw.len() as _,
-                ty.into(),
-            )
-        };
-        Expr::from_raw(self, raw_expr)
-    }
-
     pub fn call_indirect<N, I>(&self, target: Expr, operands: I, ty_name: N) -> Expr
     where
         N: ToCStr,
@@ -770,10 +751,8 @@ impl Module {
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum HostOp {
-    PageSize,
     CurrentMemory,
     GrowMemory,
-    HasFeature,
 }
 
 impl From<HostOp> for ffi::BinaryenOp {
@@ -781,10 +760,8 @@ impl From<HostOp> for ffi::BinaryenOp {
         use HostOp::*;
         unsafe {
             match hostop {
-                PageSize => ffi::BinaryenPageSize(),
                 CurrentMemory => ffi::BinaryenCurrentMemory(),
                 GrowMemory => ffi::BinaryenGrowMemory(),
-                HasFeature => ffi::BinaryenHasFeature(),
             }
         }
     }
