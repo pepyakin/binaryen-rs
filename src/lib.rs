@@ -8,6 +8,7 @@ pub use binaryen_sys as ffi;
 use std::rc::Rc;
 use std::os::raw::c_char;
 use std::ptr;
+use std::sync::{Once, Mutex};
 
 mod to_cstr;
 mod relooper;
@@ -16,6 +17,47 @@ pub mod tools;
 use to_cstr::{to_cstr_stash_option, Stash};
 pub use to_cstr::ToCStr;
 pub use relooper::*;
+
+/// Codegen configuration.
+/// 
+/// Use `set_global_codegen_config`.
+pub struct CodegenConfig {
+    /// 0, 1, 2 correspond to -O0, -Os, -Oz
+    pub shrink_level: u32,
+    /// 0, 1, 2 correspond to -O0, -O1, -O2, etc.
+    pub optimization_level: u32,
+}
+
+/// Set the global code generation configuration.
+/// 
+/// This can be used to set parameters before running `optimize` function. 
+/// However, this can influence behavior of running binaryen passes in general (for example, 
+/// `auto_drop` is implemented via a pass).
+pub fn set_global_codegen_config(codegen_config: &CodegenConfig) {
+    static mut MUTEX: Option<Mutex<()>> = None;
+    static INIT: Once = Once::new();
+
+    // Initialize the mutex only once.
+    INIT.call_once(|| {
+        unsafe {
+            // This is safe since we are in `call_once`, and it will execute this closure only once.
+            // If the second invocation happens before the closure returned then the invocation will be blocked until 
+            // the closure returns.
+            MUTEX = Some(Mutex::new(()));
+        }
+    });
+
+    unsafe {
+        let _guard = MUTEX
+            .as_ref()
+            .expect("should be initialized in call_once block above")
+            .lock()
+            .unwrap();
+
+        ffi::BinaryenSetOptimizeLevel(codegen_config.optimization_level as i32);
+        ffi::BinaryenSetShrinkLevel(codegen_config.shrink_level as i32);
+    }
+}
 
 struct InnerModule {
     raw: ffi::BinaryenModuleRef,
@@ -42,6 +84,8 @@ impl Module {
     }
 
     /// Deserialize a module from binary form.
+    /// 
+    /// This will **abort** your program if `wasm_buf` is not correct.
     pub fn read(wasm_buf: &[u8]) -> Module {
         unsafe { 
             let raw = ffi::BinaryenModuleRead(wasm_buf.as_ptr() as *mut c_char, wasm_buf.len());
@@ -66,6 +110,8 @@ impl Module {
     }
 
     /// Run the standard optimization passes on the module.
+    /// 
+    /// It will take into account code generation configuration set by `set_global_codegen_config`.
     pub fn optimize(&self) {
         unsafe { ffi::BinaryenModuleOptimize(self.inner.raw) }
     }
