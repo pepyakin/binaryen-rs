@@ -14,13 +14,14 @@
 #include "wasm-binary.h"    // For SafeRead
 
 using namespace wasm;
+using namespace std;
 
 // NOTE: this is a copy from binaryen-c.cpp
 extern "C" BinaryenModuleRef BinaryenModuleSafeRead(const char* input, size_t inputSize) {
     auto* wasm = new Module;
-    std::vector<char> buffer(false);
+    vector<char> buffer(false);
     buffer.resize(inputSize);
-    std::copy_n(input, inputSize, buffer.begin());
+    copy_n(input, inputSize, buffer.begin());
     try {
         WasmBinaryBuilder parser(*wasm, buffer, false);
         parser.read();
@@ -34,7 +35,7 @@ extern "C" BinaryenModuleRef BinaryenModuleSafeRead(const char* input, size_t in
 extern "C" BinaryenModuleRef translateToFuzz(const char *data, size_t len, bool emitAtomics) {
     auto module = new Module();
 
-    std::vector<char> input;
+    vector<char> input;
     input.resize(len);
     memcpy(&input[0], data, len);
 
