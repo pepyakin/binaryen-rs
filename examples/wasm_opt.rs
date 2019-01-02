@@ -21,30 +21,37 @@ fn parse_args() -> Result<Args, ()> {
         "-O0" => binaryen::CodegenConfig {
             optimization_level: 0,
             shrink_level: 0,
+            debug_info: true,
         },
         "-O1" => binaryen::CodegenConfig {
             optimization_level: 1,
             shrink_level: 0,
+            debug_info: true,
         },
         "-O2" => binaryen::CodegenConfig {
             optimization_level: 2,
             shrink_level: 0,
+            debug_info: true,
         },
         "-O3" => binaryen::CodegenConfig {
             optimization_level: 3,
             shrink_level: 0,
+            debug_info: true,
         },
         "-O4" => binaryen::CodegenConfig {
             optimization_level: 4,
             shrink_level: 0,
+            debug_info: true,
         },
         "-Os" => binaryen::CodegenConfig {
             optimization_level: 2,
             shrink_level: 1,
+            debug_info: true,
         },
         "-Oz" => binaryen::CodegenConfig {
             optimization_level: 2,
             shrink_level: 2,
+            debug_info: true,
         },
         _ => return Err(()),
     };
