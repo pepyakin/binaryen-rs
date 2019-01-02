@@ -63,6 +63,11 @@ pub fn set_global_codegen_config(codegen_config: &CodegenConfig) {
     }
 }
 
+fn is_valid_pass(pass: &String) -> bool {
+    let cstr = CString::new(pass.as_str()).unwrap();
+    unsafe { ffi::BinaryenShimPassFound(cstr.as_ptr()) }
+}
+
 struct InnerModule {
     raw: ffi::BinaryenModuleRef,
 }
@@ -126,7 +131,13 @@ impl Module {
     /// Run a specified set of optimization passes on the module.
     ///
     /// This WILL NOT take into account code generation configuration set by `set_global_codegen_config`.
-    pub fn run_optimization_passes(&self, passes: &Vec<String>) {
+    pub fn run_optimization_passes(&self, passes: &Vec<String>) -> Result<(), ()> {
+        for pass in passes {
+            if !is_valid_pass(pass) {
+                return Err(());
+            }
+        }
+
         let cstr_vec: Vec<_> = passes
             .iter()
             .map(|pass| CString::new(pass.as_str()).unwrap())
@@ -138,7 +149,8 @@ impl Module {
             .map(|pass| pass.as_ptr())
             .collect();
 
-        unsafe { ffi::BinaryenModuleRunPasses(self.inner.raw, ptr_vec.as_mut_ptr(), ptr_vec.len() as u32) }
+        unsafe { ffi::BinaryenModuleRunPasses(self.inner.raw, ptr_vec.as_mut_ptr(), ptr_vec.len() as u32) };
+        Ok(())
     }
 
     /// Validate a module, printing errors to stdout on problems.
@@ -1380,8 +1392,14 @@ mod tests {
 
         assert!(module.is_valid());
 
-        module.run_optimization_passes(&vec!["vacuum".to_string(), "untee".to_string()]);
+        module.run_optimization_passes(&vec!["vacuum".to_string(), "untee".to_string()]).expect("passes succeeded");
 
         assert!(module.is_valid());
+    }
+
+    #[test]
+    fn test_invalid_optimization_passes() {
+        let module = Module::new();
+        assert!(module.run_optimization_passes(&vec!["invalid".to_string()]).is_err());
     }
 }
