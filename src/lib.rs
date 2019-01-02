@@ -84,12 +84,13 @@ impl Module {
     }
 
     /// Deserialize a module from binary form.
-    /// 
-    /// This will **abort** your program if `wasm_buf` is not correct.
-    pub fn read(wasm_buf: &[u8]) -> Module {
-        unsafe { 
-            let raw = ffi::BinaryenModuleRead(wasm_buf.as_ptr() as *mut c_char, wasm_buf.len());
-            Module::from_raw(raw)
+    pub fn read(wasm_buf: &[u8]) -> Result<Module, ()> {
+        unsafe {
+            let raw = ffi::BinaryenModuleSafeRead(wasm_buf.as_ptr() as *mut c_char, wasm_buf.len());
+            if raw.is_null() {
+               return Err(())
+            }
+            Ok(Module::from_raw(raw))
         }
     }
 
@@ -1298,7 +1299,8 @@ mod tests {
 
         let written_wasm = module.write();
         let read_wasm = Module::read(&written_wasm);
-        assert!(read_wasm.is_valid());
+        assert!(read_wasm.is_ok());
+        assert!(read_wasm.unwrap().is_valid());
     }
 
     #[should_panic]
