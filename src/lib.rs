@@ -93,6 +93,17 @@ impl Module {
         }
     }
 
+    /// Deserialize a module from binary form.
+    pub fn safe_read(wasm_buf: &[u8]) -> Result<Module, ()> {
+        unsafe {
+            let raw = ffi::BinaryenModuleSafeRead(wasm_buf.as_ptr() as *mut c_char, wasm_buf.len());
+            if raw.is_null() {
+               return Err(())
+            }
+            Ok(Module::from_raw(raw))
+        }
+    }
+
     pub unsafe fn from_raw(raw: ffi::BinaryenModuleRef) -> Module {
         Module {
             inner: Rc::new(InnerModule { raw }),
