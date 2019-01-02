@@ -65,6 +65,7 @@ fn read_module(filename: &str) -> binaryen::Module {
         .expect("something went wrong reading the file");
 
     binaryen::Module::read(&contents)
+        .expect("something went wrong parsing the file")
 }
 
 fn write_module(filename: &str, wasm: &[u8]) {
