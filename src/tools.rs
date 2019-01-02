@@ -1,6 +1,5 @@
 use Module;
 use ffi;
-use std::os::raw::c_void;
 
 /// Convert some random array of bytes to a Module.
 pub fn translate_to_fuzz(seed: &[u8]) -> Module {
@@ -10,7 +9,7 @@ pub fn translate_to_fuzz(seed: &[u8]) -> Module {
 
     unsafe {
         let raw_module = ffi::translateToFuzz(
-            seed.as_ptr() as *const c_void,
+            seed.as_ptr() as *const i8,
             seed.len(),
             true
         );
@@ -26,7 +25,7 @@ pub fn translate_to_fuzz_mvp(seed: &[u8]) -> Module {
 
     unsafe {
         let raw_module = ffi::translateToFuzz(
-            seed.as_ptr() as *const c_void,
+            seed.as_ptr() as *const i8,
             seed.len(),
             false
         );

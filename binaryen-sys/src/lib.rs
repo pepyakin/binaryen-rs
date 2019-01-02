@@ -6,11 +6,6 @@ include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 use std::os::raw::c_void;
 
-extern "C" {
-    #[no_mangle]
-    pub fn translateToFuzz(data: *const c_void, len: usize, emitAtomics: bool) -> BinaryenModuleRef;
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
