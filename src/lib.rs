@@ -63,8 +63,8 @@ pub fn set_global_codegen_config(codegen_config: &CodegenConfig) {
     }
 }
 
-fn is_valid_pass(pass: &String) -> bool {
-    let cstr = CString::new(pass.as_str()).unwrap();
+fn is_valid_pass(pass: &str) -> bool {
+    let cstr = CString::new(pass).unwrap();
     unsafe { ffi::BinaryenShimPassFound(cstr.as_ptr()) }
 }
 
@@ -131,15 +131,18 @@ impl Module {
     /// Run a specified set of optimization passes on the module.
     ///
     /// This WILL NOT take into account code generation configuration set by `set_global_codegen_config`.
-    pub fn run_optimization_passes(&self, passes: &Vec<String>) -> Result<(), ()> {
+    pub fn run_optimization_passes<B: AsRef<str>, I: IntoIterator<Item = B>>(
+        &self,
+        passes: I,
+    ) -> Result<(), ()> {
         let mut cstr_vec: Vec<_> = vec![];
 
         for pass in passes {
-            if !is_valid_pass(pass) {
+            if !is_valid_pass(pass.as_ref()) {
                 return Err(());
             }
 
-            cstr_vec.push(CString::new(pass.as_str()).unwrap());
+            cstr_vec.push(CString::new(pass.as_ref()).unwrap());
         }
 
         // NOTE: BinaryenModuleRunPasses expectes a mutable ptr
