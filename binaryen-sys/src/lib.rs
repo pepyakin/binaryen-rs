@@ -4,8 +4,6 @@
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
-use std::os::raw::c_void;
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -16,7 +14,7 @@ mod tests {
     fn test_fuzz() {
         let vec: Vec<u8> = vec![0, 1, 2, 3, 4, 5];
         unsafe {
-            let module = translateToFuzz(vec.as_ptr() as *const c_void, vec.len(), true);
+            let module = translateToFuzz(vec.as_ptr() as *const i8, vec.len(), true);
             let result = BinaryenModuleValidate(module);
             assert!(result != 0);
         }
