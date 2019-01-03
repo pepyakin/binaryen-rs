@@ -18,3 +18,4 @@ script:
   # Run tests with --test-threads=1 as it looks like the linker runs out of memory
   # when linking doctests in parallel.
   - cargo test --all --verbose -- --test-threads=1
+  - cargo test --manifest-path=binaryen-sys/Cargo.toml
