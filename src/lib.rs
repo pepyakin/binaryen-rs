@@ -132,16 +132,15 @@ impl Module {
     ///
     /// This WILL NOT take into account code generation configuration set by `set_global_codegen_config`.
     pub fn run_optimization_passes(&self, passes: &Vec<String>) -> Result<(), ()> {
+        let mut cstr_vec: Vec<_> = vec![];
+
         for pass in passes {
             if !is_valid_pass(pass) {
                 return Err(());
             }
-        }
 
-        let cstr_vec: Vec<_> = passes
-            .iter()
-            .map(|pass| CString::new(pass.as_str()).unwrap())
-            .collect();
+            cstr_vec.push(CString::new(pass.as_str()).unwrap());
+        }
 
         // NOTE: BinaryenModuleRunPasses expectes a mutable ptr
         let mut ptr_vec: Vec<_> = cstr_vec
