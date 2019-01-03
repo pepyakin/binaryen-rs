@@ -104,9 +104,11 @@ impl Module {
     }
 
     /// Auto-generate drop() operations where needed. This lets you generate code without
-    /// worrying about where they are needed.
+    /// worrying about where they are needed. Please note this is also running other optimisations.
     ///
     /// It is more efficient to do it yourself, but simpler to use autodrop.
+    ///
+    /// It will take into account code generation configuration set by `set_global_codegen_config`.
     pub fn auto_drop(&self) {
         unsafe {
             ffi::BinaryenModuleAutoDrop(self.inner.raw);
