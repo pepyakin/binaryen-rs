@@ -1,6 +1,7 @@
-
 #include <cstddef>
 #include <cstring>
+
+#include "wrapper.h"
 #include "asm_v_wasm.h"
 #include "support/file.h"
 #include "pass.h"
