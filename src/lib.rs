@@ -9,6 +9,7 @@ use std::rc::Rc;
 use std::os::raw::c_char;
 use std::{ptr, slice};
 use std::sync::{Once, Mutex};
+use std::ffi::CString;
 
 mod to_cstr;
 mod relooper;
@@ -60,6 +61,11 @@ pub fn set_global_codegen_config(codegen_config: &CodegenConfig) {
         ffi::BinaryenSetShrinkLevel(codegen_config.shrink_level as i32);
         ffi::BinaryenSetDebugInfo(codegen_config.debug_info as i32);
     }
+}
+
+fn is_valid_pass(pass: &str) -> bool {
+    let cstr = CString::new(pass).unwrap();
+    unsafe { ffi::BinaryenShimPassFound(cstr.as_ptr()) }
 }
 
 struct InnerModule {
@@ -120,6 +126,33 @@ impl Module {
     /// It will take into account code generation configuration set by `set_global_codegen_config`.
     pub fn optimize(&self) {
         unsafe { ffi::BinaryenModuleOptimize(self.inner.raw) }
+    }
+
+    /// Run a specified set of optimization passes on the module.
+    ///
+    /// This WILL NOT take into account code generation configuration set by `set_global_codegen_config`.
+    pub fn run_optimization_passes<B: AsRef<str>, I: IntoIterator<Item = B>>(
+        &self,
+        passes: I,
+    ) -> Result<(), ()> {
+        let mut cstr_vec: Vec<_> = vec![];
+
+        for pass in passes {
+            if !is_valid_pass(pass.as_ref()) {
+                return Err(());
+            }
+
+            cstr_vec.push(CString::new(pass.as_ref()).unwrap());
+        }
+
+        // NOTE: BinaryenModuleRunPasses expectes a mutable ptr
+        let mut ptr_vec: Vec<_> = cstr_vec
+            .iter()
+            .map(|pass| pass.as_ptr())
+            .collect();
+
+        unsafe { ffi::BinaryenModuleRunPasses(self.inner.raw, ptr_vec.as_mut_ptr(), ptr_vec.len() as u32) };
+        Ok(())
     }
 
     /// Validate a module, printing errors to stdout on problems.
@@ -1343,5 +1376,32 @@ mod tests {
         let _test = module.add_fn("test", &return_i32, &[], add);
 
         assert!(module.is_valid());
+    }
+
+    #[test]
+    fn test_optimization_passes() {
+        let module = Module::new();
+
+        let params = &[];
+        let return_i32 = module.add_fn_type(None::<&str>, params, Ty::I32);
+        let _ = module.add_fn_type(Some("return_i64"), params, Ty::I64);
+
+        let unreachable = module.unreachable();
+
+        let add = module.call_indirect(unreachable, vec![], "return_i64");
+
+        let _test = module.add_fn("test", &return_i32, &[], add);
+
+        assert!(module.is_valid());
+
+        module.run_optimization_passes(&vec!["vacuum".to_string(), "untee".to_string()]).expect("passes succeeded");
+
+        assert!(module.is_valid());
+    }
+
+    #[test]
+    fn test_invalid_optimization_passes() {
+        let module = Module::new();
+        assert!(module.run_optimization_passes(&vec!["invalid".to_string()]).is_err());
     }
 }

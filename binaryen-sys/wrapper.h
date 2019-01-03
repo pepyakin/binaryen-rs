@@ -14,6 +14,8 @@ void BinaryenShimDisposeBinaryenModuleAllocateAndWriteResult(
     BinaryenModuleAllocateAndWriteResult result
 );
 
+bool BinaryenShimPassFound(const char *pass);
+
 #ifdef __cplusplus
 }
 #endif

@@ -56,3 +56,9 @@ extern "C" void BinaryenShimDisposeBinaryenModuleAllocateAndWriteResult(
         free(result.sourceMap);
     }
 }
+
+// NOTE: this is highly unoptimal, but this is the only API available
+extern "C" bool BinaryenShimPassFound(const char *pass) {
+    auto passes = PassRegistry::get()->getRegisteredNames();
+    return find(passes.begin(), passes.end(), pass) != passes.end();
+}
