@@ -26,6 +26,8 @@ pub struct CodegenConfig {
     pub shrink_level: u32,
     /// 0, 1, 2 correspond to -O0, -O1, -O2, etc.
     pub optimization_level: u32,
+    /// If set, the names section is emitted.
+    pub debug_info: bool,
 }
 
 /// Set the global code generation configuration.
@@ -56,6 +58,7 @@ pub fn set_global_codegen_config(codegen_config: &CodegenConfig) {
 
         ffi::BinaryenSetOptimizeLevel(codegen_config.optimization_level as i32);
         ffi::BinaryenSetShrinkLevel(codegen_config.shrink_level as i32);
+        ffi::BinaryenSetDebugInfo(codegen_config.debug_info as i32);
     }
 }
 

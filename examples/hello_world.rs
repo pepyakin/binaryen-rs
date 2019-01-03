@@ -7,6 +7,7 @@ fn main() {
     set_global_codegen_config(&CodegenConfig {
         optimization_level: 2,
         shrink_level: 2,
+        debug_info: true,
     });
 
     let module = Module::new();
