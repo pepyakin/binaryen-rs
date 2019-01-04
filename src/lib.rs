@@ -83,6 +83,12 @@ pub struct Module {
     inner: Rc<InnerModule>,
 }
 
+impl Default for Module {
+    fn default() -> Module {
+        Module::new()
+    }
+}
+
 impl Module {
     /// Create a new empty Module.
     pub fn new() -> Module {
@@ -852,12 +858,6 @@ impl From<HostOp> for ffi::BinaryenOp {
                 GrowMemory => ffi::BinaryenGrowMemory(),
             }
         }
-    }
-}
-
-impl Default for Module {
-    fn default() -> Module {
-        Module::new()
     }
 }
 
