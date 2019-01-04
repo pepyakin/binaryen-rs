@@ -103,7 +103,7 @@ impl Module {
         }
     }
 
-    pub unsafe fn from_raw(raw: ffi::BinaryenModuleRef) -> Module {
+    unsafe fn from_raw(raw: ffi::BinaryenModuleRef) -> Module {
         Module {
             inner: Rc::new(InnerModule { raw }),
         }
