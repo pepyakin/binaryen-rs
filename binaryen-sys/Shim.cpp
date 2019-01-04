@@ -20,9 +20,7 @@ using namespace std;
 // NOTE: this is a copy from binaryen-c.cpp
 extern "C" BinaryenModuleRef BinaryenModuleSafeRead(const char* input, size_t inputSize) {
     auto* wasm = new Module;
-    vector<char> buffer(false);
-    buffer.resize(inputSize);
-    copy_n(input, inputSize, buffer.begin());
+    vector<char> buffer(input, input + inputSize);
     try {
         WasmBinaryBuilder parser(*wasm, buffer, false);
         parser.read();
@@ -36,9 +34,7 @@ extern "C" BinaryenModuleRef BinaryenModuleSafeRead(const char* input, size_t in
 extern "C" BinaryenModuleRef translateToFuzz(const char *data, size_t len, bool emitAtomics) {
     auto module = new Module();
 
-    vector<char> input;
-    input.resize(len);
-    memcpy(&input[0], data, len);
+    vector<char> input(data, data + len);
 
     TranslateToFuzzReader reader(*module, input);
     reader.build(emitAtomics);
