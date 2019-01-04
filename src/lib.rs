@@ -1300,6 +1300,18 @@ impl From<Literal> for ffi::BinaryenLiteral {
 mod tests {
     use super::*;
 
+    #[test]
+    fn test_default() {
+        let module = Module::default();
+        assert!(module.is_valid());
+    }
+
+    #[test]
+    fn test_new() {
+        let module = Module::new();
+        assert!(module.is_valid());
+    }
+
     // see https://github.com/WebAssembly/binaryen/blob/master/test/example/c-api-hello-world.c
     #[test]
     fn test_hello_world() {
