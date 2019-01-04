@@ -83,6 +83,12 @@ pub struct Module {
     inner: Rc<InnerModule>,
 }
 
+impl Default for Module {
+    fn default() -> Module {
+        Module::new()
+    }
+}
+
 impl Module {
     /// Create a new empty Module.
     pub fn new() -> Module {
@@ -855,12 +861,6 @@ impl From<HostOp> for ffi::BinaryenOp {
     }
 }
 
-impl Default for Module {
-    fn default() -> Module {
-        Module::new()
-    }
-}
-
 /// A `Segment` provides a way to specify, initial contents of the memory.
 /// It consists of a data slice and an offset at which this data should be placed
 /// in memory. Offset is represented by initializer expression.
@@ -1299,6 +1299,18 @@ impl From<Literal> for ffi::BinaryenLiteral {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_default() {
+        let module = Module::default();
+        assert!(module.is_valid());
+    }
+
+    #[test]
+    fn test_new() {
+        let module = Module::new();
+        assert!(module.is_valid());
+    }
 
     // see https://github.com/WebAssembly/binaryen/blob/master/test/example/c-api-hello-world.c
     #[test]
