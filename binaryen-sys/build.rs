@@ -1,10 +1,14 @@
 extern crate bindgen;
 extern crate cmake;
 extern crate cc;
+extern crate regex;
 
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 use std::env;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use regex::Regex;
 
 fn gen_bindings() {
     let bindings = bindgen::Builder::default()
@@ -23,6 +27,23 @@ fn gen_bindings() {
         .expect("Couldn't write bindings!");
 }
 
+fn gen_passes() {
+    let re = Regex::new(r#"registerPass\("([^"]+)", "([^"]+)", [^)]+\);"#).unwrap();
+
+    let input = File::open("binaryen/src/passes/pass.cpp").expect("Couldn't open pass.cpp");
+    for line in BufReader::new(input).lines() {
+        let line = line.unwrap();
+        let caps = re.captures(&line);
+        if caps.is_some() {
+            let caps = caps.unwrap();
+            let name = caps.get(1).unwrap().as_str();
+            let description = caps.get(2).unwrap().as_str();
+
+            println!("{} -> {}", name, description);
+        }
+    }
+}
+
 fn main() {
     if !Path::new("binaryen/.git").exists() {
         let _ = Command::new("git")
@@ -30,6 +51,7 @@ fn main() {
             .status();
     }
 
+    gen_passes();
     gen_bindings();
 
     let target = env::var("TARGET").ok();
