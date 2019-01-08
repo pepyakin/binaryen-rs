@@ -16,3 +16,4 @@ binaryen-sys = { path = "binaryen-sys", version = "0.6.0" }
 
 [dev-dependencies]
 rand = "0.6.1"
+wabt = "0.7"
