@@ -81,15 +81,12 @@ pub struct Module {
     inner: Rc<InnerModule>,
 }
 
-impl Default for Module {
-    fn default() -> Module {
-        Module::new()
-    }
-}
-
 impl Module {
     /// Create a new empty Module.
-    pub fn new() -> Module {
+    ///
+    /// This is not public since all IR-construction related operations were removed from
+    /// Binaryen and thus there is not much sense in creating an empty module.
+    fn new() -> Module {
         unsafe { 
             let raw = ffi::BinaryenModuleCreate();
             Module::from_raw(raw)
@@ -97,9 +94,11 @@ impl Module {
     }
 
     /// Deserialize a module from binary form.
-    pub fn read(wasm_buf: &[u8]) -> Result<Module, ()> {
+    ///
+    /// Returns `Err` if an invalid module is given.
+    pub fn read(module: &[u8]) -> Result<Module, ()> {
         unsafe {
-            let raw = ffi::BinaryenModuleSafeRead(wasm_buf.as_ptr() as *mut c_char, wasm_buf.len());
+            let raw = ffi::BinaryenModuleSafeRead(module.as_ptr() as *mut c_char, module.len());
             if raw.is_null() {
                return Err(())
             }
@@ -148,19 +147,14 @@ impl Module {
     }
 
     /// Validate a module, printing errors to stdout on problems.
-    pub fn is_valid(&self) -> bool {
+    ///
+    /// This module is private since you can't create an invalid module through the
+    /// safe public API.
+    fn is_valid(&self) -> bool {
         unsafe { ffi::BinaryenModuleValidate(self.inner.raw) == 1 }
     }
 
     /// Serialize a module into binary form.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use binaryen::Module;
-    /// let module = Module::new();
-    /// let wasm = module.write();
-    /// ```
     pub fn write(&self) -> Vec<u8> {
         unsafe {
             let write_result = ffi::BinaryenModuleAllocateAndWrite(self.inner.raw, ptr::null());
@@ -187,17 +181,21 @@ impl Module {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_default() {
-        let module = Module::default();
-        assert!(module.is_valid());
+    
+    macro_rules! wat2wasm {
+        ($x:expr) => {
+            wabt::wat2wasm($x).unwrap()
+        };
     }
-
+    
     #[test]
-    fn test_new() {
-        let module = Module::new();
-        assert!(module.is_valid());
+    fn module_reading() {
+        // The current version of wasm is 1, thus module with the version 0 is invalid.
+        let invalid_module = b"\0asm\0\0\0\0";
+        let valid_module = b"\0asm\x01\0\0\0";
+        
+        assert!(Module::read(invalid_module).is_err());
+        assert!(Module::read(valid_module).is_ok());
     }
 
     #[test]
@@ -215,8 +213,7 @@ mod tests {
                 )
             )
         "#;
-        let code = wabt::wat2wasm(CODE).unwrap();
-        let module = Module::read(&code).unwrap();
+        let module = Module::read(&wat2wasm!(CODE)).unwrap();
 
         assert!(module.is_valid());
 
