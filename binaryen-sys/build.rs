@@ -34,7 +34,7 @@ struct Pass {
     description: String
 }
 
-fn gen_passes() {
+fn read_passes() -> Vec<Pass> {
     let re = Regex::new(r#"registerPass\("([^"]+)", "([^"]+)", [^)]+\);"#).unwrap();
 
     let mut passes: Vec<Pass> = vec![];
@@ -53,6 +53,12 @@ fn gen_passes() {
             passes.push(Pass { id: name.to_string(), name: name.to_string(), description: description.to_string() });
         }
     }
+
+    passes
+}
+
+fn gen_passes() {
+    let passes = read_passes();
 
     println!("{:?}", passes);
 }
