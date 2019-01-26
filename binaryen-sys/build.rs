@@ -2,6 +2,7 @@ extern crate bindgen;
 extern crate cmake;
 extern crate cc;
 extern crate regex;
+extern crate heck;
 
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -9,6 +10,7 @@ use std::env;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use regex::Regex;
+use heck::CamelCase;
 
 fn gen_bindings() {
     let bindings = bindgen::Builder::default()
@@ -48,9 +50,7 @@ fn read_passes() -> Vec<Pass> {
             let name = caps.get(1).unwrap().as_str();
             let description = caps.get(2).unwrap().as_str();
 
-            // FIXME: generate 'id' here which should translate from snakecase to camelcase
-
-            passes.push(Pass { id: name.to_string(), name: name.to_string(), description: description.to_string() });
+            passes.push(Pass { id: name.to_camel_case(), name: name.to_string(), description: description.to_string() });
         }
     }
 
