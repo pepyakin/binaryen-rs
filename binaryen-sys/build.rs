@@ -27,8 +27,17 @@ fn gen_bindings() {
         .expect("Couldn't write bindings!");
 }
 
+#[derive(Debug)]
+struct Pass {
+    id: String,
+    name: String,
+    description: String
+}
+
 fn gen_passes() {
     let re = Regex::new(r#"registerPass\("([^"]+)", "([^"]+)", [^)]+\);"#).unwrap();
+
+    let mut passes: Vec<Pass> = vec![];
 
     let input = File::open("binaryen/src/passes/pass.cpp").expect("Couldn't open pass.cpp");
     for line in BufReader::new(input).lines() {
@@ -39,9 +48,13 @@ fn gen_passes() {
             let name = caps.get(1).unwrap().as_str();
             let description = caps.get(2).unwrap().as_str();
 
-            println!("{} -> {}", name, description);
+            // FIXME: generate 'id' here which should translate from snakecase to camelcase
+
+            passes.push(Pass { id: name.to_string(), name: name.to_string(), description: description.to_string() });
         }
     }
+
+    println!("{:?}", passes);
 }
 
 fn main() {
