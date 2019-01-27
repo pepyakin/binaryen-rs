@@ -13,9 +13,9 @@ use std::os::raw::c_char;
 use std::{ptr, slice};
 use std::sync::{Once, Mutex};
 use std::ffi::CString;
+use std::str::FromStr;
 
 pub mod tools;
-
 
 /// Codegen configuration.
 /// 
@@ -62,8 +62,7 @@ pub fn set_global_codegen_config(codegen_config: &CodegenConfig) {
 }
 
 fn is_valid_pass(pass: &str) -> bool {
-    let cstr = CString::new(pass).unwrap();
-    unsafe { ffi::BinaryenShimPassFound(cstr.as_ptr()) }
+    ffi::passes::OptimizationPass::from_str(pass).is_ok()
 }
 
 struct InnerModule {
