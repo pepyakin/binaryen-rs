@@ -4,4 +4,3 @@ Cargo.lock
 .vscode
 .idea
 binaryen-sys/target
-binaryen-sys/src/passes.rs

@@ -133,7 +133,8 @@ fn gen_passes() {
     test_description = passes[0].description.to_string()
     );
 
-    fs::write("src/passes.rs", output).expect("Unable to write passes.rs");
+    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+    fs::write(out_path.join("passes.rs"), output).expect("Unable to write passes.rs");
 }
 
 fn main() {
