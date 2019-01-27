@@ -7,6 +7,7 @@ extern crate regex;
 use heck::CamelCase;
 use regex::Regex;
 use std::env;
+use std::fs;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
@@ -131,6 +132,8 @@ fn gen_passes() {
     test_name = passes[0].name.to_string(),
     test_description = passes[0].description.to_string()
     );
+
+    fs::write("src/passes.rs", output).expect("Unable to write passes.rs");
 }
 
 fn main() {
