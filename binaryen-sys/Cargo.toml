@@ -16,3 +16,5 @@ exclude = [
 bindgen = "0.30.0"
 cmake = "0.1.25"
 cc = "1.0.4"
+regex = "1"
+heck = "0.3"

@@ -4,6 +4,8 @@
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
+pub mod passes;
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -1,8 +1,15 @@
 extern crate bindgen;
-extern crate cmake;
 extern crate cc;
+extern crate cmake;
+extern crate heck;
+extern crate regex;
 
+use heck::CamelCase;
+use regex::Regex;
 use std::env;
+use std::fs;
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -23,6 +30,113 @@ fn gen_bindings() {
         .expect("Couldn't write bindings!");
 }
 
+#[derive(Clone, PartialEq, Debug)]
+struct Pass {
+    id: String,
+    name: String,
+    description: String,
+}
+
+fn read_passes() -> Vec<Pass> {
+    let re = Regex::new(r#"registerPass\("([^"]+)", "([^"]+)", [^)]+\);"#).unwrap();
+
+    let mut passes: Vec<Pass> = vec![];
+
+    let input = File::open("binaryen/src/passes/pass.cpp").expect("Couldn't open pass.cpp");
+    for line in BufReader::new(input).lines() {
+        let line = line.unwrap();
+        let caps = re.captures(&line);
+        if caps.is_some() {
+            let caps = caps.unwrap();
+            let name = caps.get(1).unwrap().as_str();
+            let description = caps.get(2).unwrap().as_str();
+
+            passes.push(Pass {
+                id: name.to_camel_case(),
+                name: name.to_string(),
+                description: description.to_string(),
+            });
+        }
+    }
+
+    passes
+}
+
+fn gen_passes() {
+    let passes: Vec<Pass> = read_passes();
+
+    let ids: Vec<String> = passes
+        .iter()
+        .map(|pass| format!("/// {}\n{}", pass.description.to_string(), pass.id.to_string()))
+        .collect();
+
+    let fromstrs: Vec<String> = passes
+        .iter()
+        .map(|pass| format!(r#""{}" => Ok(OptimizationPass::{})"#, pass.name.to_string(), pass.id.to_string()))
+        .collect();
+
+    let descriptions: Vec<String> = passes
+        .iter()
+        .map(|pass| format!(r#"OptimizationPass::{} => "{}""#, pass.id.to_string(), pass.description.to_string()))
+        .collect();
+
+    let output = format!(r#"
+        use std::str::FromStr;
+
+        #[derive(Eq, PartialEq, Debug)]
+        pub enum OptimizationPass {{
+            {ids}
+        }}
+
+        impl FromStr for OptimizationPass {{
+            type Err = ();
+            fn from_str(s: &str) -> Result<Self, Self::Err> {{
+                match s {{
+                    {fromstrs},
+                    _ => Err(()),
+                }}
+            }}
+        }}
+
+        trait OptimizationPassDescription {{
+            fn description(&self) -> &'static str;
+        }}
+
+        impl OptimizationPassDescription for OptimizationPass {{
+            fn description(&self) -> &'static str {{
+                match self {{
+                    {descriptions}
+                }}
+            }}
+        }}
+
+        #[cfg(test)]
+        mod tests {{
+            use super::*;
+
+            #[test]
+            fn test_from_str() {{
+                assert_eq!(OptimizationPass::{test_id}, OptimizationPass::from_str("{test_name}").expect("from_str expected to work"));
+            }}
+
+            #[test]
+            fn test_description() {{
+                assert_eq!(OptimizationPass::{test_id}.description(), "{test_description}");
+            }}
+        }}
+    "#,
+    ids = ids.join(",\n"),
+    fromstrs = fromstrs.join(",\n"),
+    descriptions = descriptions.join(",\n"),
+    test_id = passes[0].id.to_string(),
+    test_name = passes[0].name.to_string(),
+    test_description = passes[0].description.to_string()
+    );
+
+    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+    fs::write(out_path.join("passes.rs"), output).expect("Unable to write passes.rs");
+}
+
 fn main() {
     if !Path::new("binaryen/.git").exists() {
         let _ = Command::new("git")
@@ -30,6 +144,7 @@ fn main() {
             .status();
     }
 
+    gen_passes();
     gen_bindings();
 
     let target = env::var("TARGET").ok();
@@ -44,7 +159,6 @@ fn main() {
             .status()
             .unwrap();
 
-        
         println!("cargo:rustc-link-search=native={}", env::var("OUT_DIR").unwrap());
         println!("cargo:rustc-link-lib=static=binaryen-c");
         return;
