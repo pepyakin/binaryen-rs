@@ -149,6 +149,7 @@ impl Module {
     ///
     /// This module is private since you can't create an invalid module through the
     /// safe public API.
+    #[cfg(test)]
     fn is_valid(&self) -> bool {
         unsafe { ffi::BinaryenModuleValidate(self.inner.raw) == 1 }
     }
