@@ -38,9 +38,8 @@ extern "C" BinaryenModuleRef translateToFuzz(const char *data, size_t len, bool 
 
     TranslateToFuzzReader reader(*module, input);
     if (emitAtomics) {
-        FeatureSet features;
-        features.setAtomics();
-        reader.setFeatures(features);
+        module->features.setAtomics();
+        module->hasFeaturesSection = true;
     }
     reader.build();
 
