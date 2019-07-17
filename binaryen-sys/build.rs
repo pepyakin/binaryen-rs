@@ -67,17 +67,35 @@ fn gen_passes() {
 
     let ids: Vec<String> = passes
         .iter()
-        .map(|pass| format!("/// {}\n{}", pass.description.to_string(), pass.id.to_string()))
+        .map(|pass| {
+            format!(
+                "/// {}\n{}",
+                pass.description.to_string(),
+                pass.id.to_string()
+            )
+        })
         .collect();
 
     let fromstrs: Vec<String> = passes
         .iter()
-        .map(|pass| format!(r#""{}" => Ok(OptimizationPass::{})"#, pass.name.to_string(), pass.id.to_string()))
+        .map(|pass| {
+            format!(
+                r#""{}" => Ok(OptimizationPass::{})"#,
+                pass.name.to_string(),
+                pass.id.to_string()
+            )
+        })
         .collect();
 
     let descriptions: Vec<String> = passes
         .iter()
-        .map(|pass| format!(r#"OptimizationPass::{} => "{}""#, pass.id.to_string(), pass.description.to_string()))
+        .map(|pass| {
+            format!(
+                r#"OptimizationPass::{} => "{}""#,
+                pass.id.to_string(),
+                pass.description.to_string()
+            )
+        })
         .collect();
 
     let output = format!(r#"
@@ -159,13 +177,17 @@ fn main() {
             .status()
             .unwrap();
 
-        println!("cargo:rustc-link-search=native={}", env::var("OUT_DIR").unwrap());
+        println!(
+            "cargo:rustc-link-search=native={}",
+            env::var("OUT_DIR").unwrap()
+        );
         println!("cargo:rustc-link-lib=static=binaryen-c");
         return;
     }
 
     let dst = cmake::Config::new("binaryen")
         .define("BUILD_STATIC_LIB", "ON")
+        .define("ENABLE_WERROR", "OFF")
         .build();
 
     println!("cargo:rustc-link-search=native={}/build/lib", dst.display());
