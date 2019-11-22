@@ -12,7 +12,7 @@ exclude = [
 ]
 
 [build-dependencies]
-bindgen = "0.30.0"
+bindgen = "0.52.0"
 cmake = "0.1.25"
 cc = "1.0.4"
 regex = "1"
