@@ -8,8 +8,7 @@ use heck::CamelCase;
 use regex::Regex;
 use std::env;
 use std::fs;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -38,25 +37,22 @@ struct Pass {
 }
 
 fn read_passes() -> Vec<Pass> {
-    let re = Regex::new(r#"registerPass\("([^"]+)", "([^"]+)", [^)]+\);"#).unwrap();
+    let re = Regex::new(r#"registerPass\(\s*"([^"]+)",\s*"([^"]+)",\s*[^)]+\s*\);"#).unwrap();
 
     let mut passes: Vec<Pass> = vec![];
 
-    let input = File::open("binaryen/src/passes/pass.cpp").expect("Couldn't open pass.cpp");
-    for line in BufReader::new(input).lines() {
-        let line = line.unwrap();
-        let caps = re.captures(&line);
-        if caps.is_some() {
-            let caps = caps.unwrap();
-            let name = caps.get(1).unwrap().as_str();
-            let description = caps.get(2).unwrap().as_str();
+    let input = read_to_string("binaryen/src/passes/pass.cpp").expect("Couldn't open pass.cpp");
 
-            passes.push(Pass {
-                id: name.to_camel_case(),
-                name: name.to_string(),
-                description: description.to_string(),
-            });
-        }
+    for caps in re.captures_iter(&input)
+    {
+        let name = caps.get(1).unwrap().as_str();
+        let description = caps.get(2).unwrap().as_str();
+
+        passes.push(Pass {
+            id: name.to_camel_case(),
+            name: name.to_string(),
+            description: description.to_string(),
+        });
     }
 
     passes
