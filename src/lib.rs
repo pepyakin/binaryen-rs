@@ -4,7 +4,7 @@ pub extern crate binaryen_sys;
 extern crate rand;
 
 #[cfg(test)]
-extern crate wabt;
+extern crate wat;
 
 pub use binaryen_sys as ffi;
 
@@ -181,19 +181,19 @@ impl Module {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     macro_rules! wat2wasm {
         ($x:expr) => {
-            wabt::wat2wasm($x).unwrap()
+            wat::parse_str($x).unwrap()
         };
     }
-    
+
     #[test]
     fn module_reading() {
         // The current version of wasm is 1, thus module with the version 0 is invalid.
         let invalid_module = b"\0asm\0\0\0\0";
         let valid_module = b"\0asm\x01\0\0\0";
-        
+
         assert!(Module::read(invalid_module).is_err());
         assert!(Module::read(valid_module).is_ok());
     }
@@ -204,7 +204,7 @@ mod tests {
         r#"
             (module
                 (table 1 1 anyfunc)
-            
+
                 (type $return_i32 (func (result i32)))
                 (func $test (; 0 ;) (result i32)
                     (call_indirect (type $return_i32)
