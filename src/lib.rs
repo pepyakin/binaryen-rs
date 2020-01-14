@@ -139,15 +139,14 @@ impl Module {
             let write_result = ffi::BinaryenModuleAllocateAndWrite(self.inner.raw, ptr::null());
 
             // Create a slice from the resulting array and then copy it in vector.
-            let binary_slice = if write_result.binaryBytes == 0 {
-                &[]
+            let binary_buf = if write_result.binaryBytes == 0 {
+               vec![]
             } else {
                 slice::from_raw_parts(
                     write_result.binary as *const u8, 
                     write_result.binaryBytes
-                )
+                ).to_vec()
             };
-            let binary_buf = binary_slice.to_vec();
 
             // This will free buffers in the write_result.
             ffi::BinaryenShimDisposeBinaryenModuleAllocateAndWriteResult(write_result);
