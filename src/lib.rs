@@ -132,6 +132,7 @@ impl Module {
     pub fn run_optimization_passes<B: AsRef<str>, I: IntoIterator<Item = B>>(
         &mut self,
         passes: I,
+        codegen_config: &CodegenConfig
     ) -> Result<(), ()> {
         let mut cstr_vec: Vec<_> = vec![];
 
@@ -149,7 +150,16 @@ impl Module {
             .map(|pass| pass.as_ptr())
             .collect();
 
-        unsafe { ffi::BinaryenModuleRunPasses(self.inner.raw, ptr_vec.as_mut_ptr(), ptr_vec.len() as u32) };
+        unsafe {
+            ffi::BinaryenModuleRunPassesWithSettings(
+                self.inner.raw,
+                ptr_vec.as_mut_ptr(),
+                ptr_vec.len() as u32,
+                codegen_config.shrink_level as i32,
+                codegen_config.optimization_level as i32,
+                codegen_config.debug_info as i32
+            )
+        };
         Ok(())
     }
 
@@ -225,7 +235,7 @@ mod tests {
 
         assert!(module.is_valid());
 
-        module.run_optimization_passes(&["vacuum", "untee"]).expect("passes succeeded");
+        module.run_optimization_passes(&["vacuum", "untee"], &CodegenConfig::default()).expect("passes succeeded");
 
         assert!(module.is_valid());
     }
@@ -233,7 +243,7 @@ mod tests {
     #[test]
     fn test_invalid_optimization_passes() {
         let mut module = Module::new();
-        assert!(module.run_optimization_passes(&["invalid"]).is_err());
+        assert!(module.run_optimization_passes(&["invalid"], &CodegenConfig::default()).is_err());
     }
 
     #[test]
