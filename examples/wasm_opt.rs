@@ -96,7 +96,7 @@ fn main() {
             process::exit(1);
         }
     };
-    let module = read_module(&args.input_path);
+    let mut module = read_module(&args.input_path);
     binaryen::set_global_codegen_config(&args.codegen_config);
     module.optimize();
 

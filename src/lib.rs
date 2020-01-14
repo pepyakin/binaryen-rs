@@ -97,7 +97,7 @@ impl Module {
     /// Returns `Err` if an invalid module is given.
     pub fn read(module: &[u8]) -> Result<Module, ()> {
         unsafe {
-            let raw = ffi::BinaryenModuleSafeRead(module.as_ptr() as *mut c_char, module.len());
+            let raw = ffi::BinaryenModuleSafeRead(module.as_ptr() as *const c_char, module.len());
             if raw.is_null() {
                return Err(())
             }
@@ -114,7 +114,7 @@ impl Module {
     /// Run the standard optimization passes on the module.
     /// 
     /// It will take into account code generation configuration set by `set_global_codegen_config`.
-    pub fn optimize(&self) {
+    pub fn optimize(&mut self) {
         unsafe { ffi::BinaryenModuleOptimize(self.inner.raw) }
     }
 
@@ -122,7 +122,7 @@ impl Module {
     ///
     /// This WILL NOT take into account code generation configuration set by `set_global_codegen_config`.
     pub fn run_optimization_passes<B: AsRef<str>, I: IntoIterator<Item = B>>(
-        &self,
+        &mut self,
         passes: I,
     ) -> Result<(), ()> {
         let mut cstr_vec: Vec<_> = vec![];
@@ -213,7 +213,7 @@ mod tests {
                 )
             )
         "#;
-        let module = Module::read(&wat2wasm!(CODE)).unwrap();
+        let mut module = Module::read(&wat2wasm!(CODE)).unwrap();
 
         assert!(module.is_valid());
 
@@ -224,7 +224,7 @@ mod tests {
 
     #[test]
     fn test_invalid_optimization_passes() {
-        let module = Module::new();
+        let mut module = Module::new();
         assert!(module.run_optimization_passes(&["invalid"]).is_err());
     }
 
@@ -241,7 +241,7 @@ mod tests {
             0x0a, 0x05, 0x01, 0x03, 0x00, 0x01, 0x0b,
         ];
 
-        let module = Module::read(&input).unwrap();
+        let mut module = Module::read(&input).unwrap();
         assert!(module.is_valid());
         module.optimize();
         assert!(module.is_valid());
