@@ -23,6 +23,8 @@ void BinaryenModuleRunPassesWithSettings(
     int shrinkLevel, int optimizeLevel, int debugInfo
 );
 
+int BinaryenModuleSafeValidate(BinaryenModuleRef module);
+
 #ifdef __cplusplus
 }
 #endif

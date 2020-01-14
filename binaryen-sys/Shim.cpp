@@ -89,3 +89,14 @@ extern "C" void BinaryenModuleRunPassesWithSettings(
   }
   passRunner.run();
 }
+
+// NOTE: this is based on BinaryenModuleValidate from binaryen-c.cpp
+extern "C" int BinaryenModuleSafeValidate(BinaryenModuleRef module) {
+  Module* wasm = (Module*)module;
+  auto features = wasm->features;
+  // TODO(tlively): Add C API for managing features
+  wasm->features = FeatureSet::All;
+  auto ret = WasmValidator().validate(*wasm) ? 1 : 0;
+  wasm->features = features;
+  return ret;
+}
