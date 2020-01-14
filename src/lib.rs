@@ -20,6 +20,7 @@ pub mod tools;
 /// Codegen configuration.
 /// 
 /// Use `set_global_codegen_config`.
+#[derive(Default)]
 pub struct CodegenConfig {
     /// 0, 1, 2 correspond to -O0, -Os, -Oz
     pub shrink_level: u32,
