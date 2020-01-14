@@ -115,8 +115,15 @@ impl Module {
     /// Run the standard optimization passes on the module.
     /// 
     /// It will take into account code generation configuration set by `set_global_codegen_config`.
-    pub fn optimize(&mut self) {
-        unsafe { ffi::BinaryenModuleOptimize(self.inner.raw) }
+    pub fn optimize(&mut self, codegen_config: &CodegenConfig) {
+        unsafe {
+            ffi::BinaryenModuleOptimizeWithSettings(
+                self.inner.raw,
+                codegen_config.shrink_level as i32,
+                codegen_config.optimization_level as i32,
+                codegen_config.debug_info as i32
+            )
+        }
     }
 
     /// Run a specified set of optimization passes on the module.
@@ -244,7 +251,7 @@ mod tests {
 
         let mut module = Module::read(&input).unwrap();
         assert!(module.is_valid());
-        module.optimize();
+        module.optimize(&CodegenConfig::default());
         assert!(module.is_valid());
         assert_eq!(module.write(), expected);
     }
