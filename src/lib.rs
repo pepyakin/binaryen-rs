@@ -130,7 +130,7 @@ impl Module {
     /// safe public API.
     #[cfg(test)]
     fn is_valid(&self) -> bool {
-        unsafe { ffi::BinaryenModuleValidate(self.inner.raw) == 1 }
+        unsafe { ffi::BinaryenModuleSafeValidate(self.inner.raw) == 1 }
     }
 
     /// Serialize a module into binary form.
