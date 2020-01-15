@@ -14,6 +14,15 @@ void BinaryenShimDisposeBinaryenModuleAllocateAndWriteResult(
     BinaryenModuleAllocateAndWriteResult result
 );
 
+void BinaryenModuleOptimizeWithSettings(
+    BinaryenModuleRef module, int shrinkLevel, int optimizeLevel, int debugInfo
+);
+
+void BinaryenModuleRunPassesWithSettings(
+    BinaryenModuleRef module, const char** passes, BinaryenIndex numPasses,
+    int shrinkLevel, int optimizeLevel, int debugInfo
+);
+
 #ifdef __cplusplus
 }
 #endif

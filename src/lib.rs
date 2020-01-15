@@ -11,15 +11,13 @@ pub use binaryen_sys as ffi;
 use std::rc::Rc;
 use std::os::raw::c_char;
 use std::{ptr, slice};
-use std::sync::{Once, Mutex};
 use std::ffi::CString;
 use std::str::FromStr;
 
 pub mod tools;
 
 /// Codegen configuration.
-/// 
-/// Use `set_global_codegen_config`.
+#[derive(Default)]
 pub struct CodegenConfig {
     /// 0, 1, 2 correspond to -O0, -Os, -Oz
     pub shrink_level: u32,
@@ -27,38 +25,6 @@ pub struct CodegenConfig {
     pub optimization_level: u32,
     /// If set, the names section is emitted.
     pub debug_info: bool,
-}
-
-/// Set the global code generation configuration.
-/// 
-/// This can be used to set parameters before running `optimize` function. 
-/// However, this can influence behavior of running binaryen passes in general (for example, 
-/// `auto_drop` is implemented via a pass).
-pub fn set_global_codegen_config(codegen_config: &CodegenConfig) {
-    static mut MUTEX: Option<Mutex<()>> = None;
-    static INIT: Once = Once::new();
-
-    // Initialize the mutex only once.
-    INIT.call_once(|| {
-        unsafe {
-            // This is safe since we are in `call_once`, and it will execute this closure only once.
-            // If the second invocation happens before the closure returned then the invocation will be blocked until 
-            // the closure returns.
-            MUTEX = Some(Mutex::new(()));
-        }
-    });
-
-    unsafe {
-        let _guard = MUTEX
-            .as_ref()
-            .expect("should be initialized in call_once block above")
-            .lock()
-            .unwrap();
-
-        ffi::BinaryenSetOptimizeLevel(codegen_config.optimization_level as i32);
-        ffi::BinaryenSetShrinkLevel(codegen_config.shrink_level as i32);
-        ffi::BinaryenSetDebugInfo(codegen_config.debug_info as i32);
-    }
 }
 
 fn is_valid_pass(pass: &str) -> bool {
@@ -112,18 +78,22 @@ impl Module {
     }
 
     /// Run the standard optimization passes on the module.
-    /// 
-    /// It will take into account code generation configuration set by `set_global_codegen_config`.
-    pub fn optimize(&mut self) {
-        unsafe { ffi::BinaryenModuleOptimize(self.inner.raw) }
+    pub fn optimize(&mut self, codegen_config: &CodegenConfig) {
+        unsafe {
+            ffi::BinaryenModuleOptimizeWithSettings(
+                self.inner.raw,
+                codegen_config.shrink_level as i32,
+                codegen_config.optimization_level as i32,
+                codegen_config.debug_info as i32
+            )
+        }
     }
 
     /// Run a specified set of optimization passes on the module.
-    ///
-    /// This WILL NOT take into account code generation configuration set by `set_global_codegen_config`.
     pub fn run_optimization_passes<B: AsRef<str>, I: IntoIterator<Item = B>>(
         &mut self,
         passes: I,
+        codegen_config: &CodegenConfig
     ) -> Result<(), ()> {
         let mut cstr_vec: Vec<_> = vec![];
 
@@ -141,7 +111,16 @@ impl Module {
             .map(|pass| pass.as_ptr())
             .collect();
 
-        unsafe { ffi::BinaryenModuleRunPasses(self.inner.raw, ptr_vec.as_mut_ptr(), ptr_vec.len() as u32) };
+        unsafe {
+            ffi::BinaryenModuleRunPassesWithSettings(
+                self.inner.raw,
+                ptr_vec.as_mut_ptr(),
+                ptr_vec.len() as u32,
+                codegen_config.shrink_level as i32,
+                codegen_config.optimization_level as i32,
+                codegen_config.debug_info as i32
+            )
+        };
         Ok(())
     }
 
@@ -217,7 +196,7 @@ mod tests {
 
         assert!(module.is_valid());
 
-        module.run_optimization_passes(&["vacuum", "untee"]).expect("passes succeeded");
+        module.run_optimization_passes(&["vacuum", "untee"], &CodegenConfig::default()).expect("passes succeeded");
 
         assert!(module.is_valid());
     }
@@ -225,7 +204,7 @@ mod tests {
     #[test]
     fn test_invalid_optimization_passes() {
         let mut module = Module::new();
-        assert!(module.run_optimization_passes(&["invalid"]).is_err());
+        assert!(module.run_optimization_passes(&["invalid"], &CodegenConfig::default()).is_err());
     }
 
     #[test]
@@ -243,7 +222,7 @@ mod tests {
 
         let mut module = Module::read(&input).unwrap();
         assert!(module.is_valid());
-        module.optimize();
+        module.optimize(&CodegenConfig::default());
         assert!(module.is_valid());
         assert_eq!(module.write(), expected);
     }

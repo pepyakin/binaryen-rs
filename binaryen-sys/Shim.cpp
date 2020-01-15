@@ -17,7 +17,7 @@
 using namespace wasm;
 using namespace std;
 
-// NOTE: this is a copy from binaryen-c.cpp
+// NOTE: this is based on BinaryenModuleRead from binaryen-c.cpp
 extern "C" BinaryenModuleRef BinaryenModuleSafeRead(const char* input, size_t inputSize) {
     auto* wasm = new Module;
     vector<char> buffer(input, input + inputSize);
@@ -55,4 +55,37 @@ extern "C" void BinaryenShimDisposeBinaryenModuleAllocateAndWriteResult(
     if (result.sourceMap) {
         free(result.sourceMap);
     }
+}
+
+// NOTE: this is based on BinaryenModuleOptimizer from binaryen-c.cpp
+// Main benefit is being thread safe.
+extern "C" void BinaryenModuleOptimizeWithSettings(
+    BinaryenModuleRef module, int shrinkLevel, int optimizeLevel, int debugInfo
+) {
+  Module* wasm = (Module*)module;
+  PassRunner passRunner(wasm);
+  passRunner.options = PassOptions::getWithDefaultOptimizationOptions();
+  passRunner.options.shrinkLevel = shrinkLevel;
+  passRunner.options.optimizeLevel = optimizeLevel;
+  passRunner.options.debugInfo = debugInfo != 0;
+  passRunner.addDefaultOptimizationPasses();
+  passRunner.run();
+}
+
+// NOTE: this is based on BinaryenModuleRunPasses from binaryen-c.cpp
+// Main benefit is being thread safe.
+extern "C" void BinaryenModuleRunPassesWithSettings(
+    BinaryenModuleRef module, const char** passes, BinaryenIndex numPasses,
+    int shrinkLevel, int optimizeLevel, int debugInfo
+) {
+  Module* wasm = (Module*)module;
+  PassRunner passRunner(wasm);
+  passRunner.options = PassOptions::getWithDefaultOptimizationOptions();
+  passRunner.options.shrinkLevel = shrinkLevel;
+  passRunner.options.optimizeLevel = optimizeLevel;
+  passRunner.options.debugInfo = debugInfo != 0;
+  for (BinaryenIndex i = 0; i < numPasses; i++) {
+    passRunner.add(passes[i]);
+  }
+  passRunner.run();
 }

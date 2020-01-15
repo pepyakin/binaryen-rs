@@ -97,8 +97,7 @@ fn main() {
         }
     };
     let mut module = read_module(&args.input_path);
-    binaryen::set_global_codegen_config(&args.codegen_config);
-    module.optimize();
+    module.optimize(&args.codegen_config);
 
     let optimized_wasm = module.write();
     write_module(&args.output_path, &optimized_wasm);
