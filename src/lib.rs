@@ -80,8 +80,10 @@ impl Module {
     /// Run the standard optimization passes on the module.
     pub fn optimize(&mut self, codegen_config: &CodegenConfig) {
         unsafe {
-            ffi::BinaryenModuleOptimizeWithSettings(
+            ffi::BinaryenModuleRunPassesWithSettings(
                 self.inner.raw,
+                std::ptr::null_mut(),
+                0 as u32,
                 codegen_config.shrink_level as i32,
                 codegen_config.optimization_level as i32,
                 codegen_config.debug_info as i32,

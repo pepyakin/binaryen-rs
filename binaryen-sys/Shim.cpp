@@ -57,22 +57,8 @@ extern "C" void BinaryenShimDisposeBinaryenModuleAllocateAndWriteResult(
     }
 }
 
-// NOTE: this is based on BinaryenModuleOptimizer from binaryen-c.cpp
-// Main benefit is being thread safe.
-extern "C" void BinaryenModuleOptimizeWithSettings(
-    BinaryenModuleRef module, int shrinkLevel, int optimizeLevel, int debugInfo
-) {
-  Module* wasm = (Module*)module;
-  PassRunner passRunner(wasm);
-  passRunner.options = PassOptions::getWithDefaultOptimizationOptions();
-  passRunner.options.shrinkLevel = shrinkLevel;
-  passRunner.options.optimizeLevel = optimizeLevel;
-  passRunner.options.debugInfo = debugInfo != 0;
-  passRunner.addDefaultOptimizationPasses();
-  passRunner.run();
-}
-
-// NOTE: this is based on BinaryenModuleRunPasses from binaryen-c.cpp
+// NOTE: this is based on BinaryenModuleRunPasses and BinaryenModuleOptimizer
+// from binaryen-c.cpp
 // Main benefit is being thread safe.
 extern "C" void BinaryenModuleRunPassesWithSettings(
     BinaryenModuleRef module, const char** passes, BinaryenIndex numPasses,
@@ -84,8 +70,12 @@ extern "C" void BinaryenModuleRunPassesWithSettings(
   passRunner.options.shrinkLevel = shrinkLevel;
   passRunner.options.optimizeLevel = optimizeLevel;
   passRunner.options.debugInfo = debugInfo != 0;
-  for (BinaryenIndex i = 0; i < numPasses; i++) {
-    passRunner.add(passes[i]);
+  if (passes == nullptr) {
+    passRunner.addDefaultOptimizationPasses();
+  } else {
+    for (BinaryenIndex i = 0; i < numPasses; i++) {
+      passRunner.add(passes[i]);
+    }
   }
   passRunner.run();
 }
