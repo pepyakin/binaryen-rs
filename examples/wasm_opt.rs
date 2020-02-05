@@ -71,8 +71,7 @@ fn read_module(filename: &str) -> binaryen::Module {
     f.read_to_end(&mut contents)
         .expect("something went wrong reading the file");
 
-    binaryen::Module::read(&contents)
-        .expect("something went wrong parsing the file")
+    binaryen::Module::read(&contents).expect("something went wrong parsing the file")
 }
 
 fn write_module(filename: &str, wasm: &[u8]) {
@@ -80,8 +79,7 @@ fn write_module(filename: &str, wasm: &[u8]) {
     f.write_all(wasm).expect("failed to write file");
 }
 
-const USAGE: &'static str = 
-r#"usage: wasm_opt OPT_LEVEL FILENAME
+const USAGE: &'static str = r#"usage: wasm_opt OPT_LEVEL FILENAME
 
 OPT_LEVEL - one of -O0, -O1, -O2, -O3, -Os, -Oz
 INPUT     - path to a wasm module to optimize
