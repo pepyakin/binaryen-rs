@@ -1,5 +1,12 @@
-sudo: false
 language: rust
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gcc-7
+    - g++-7
+    - cmake
 
 rust:
   - nightly
@@ -12,7 +19,7 @@ before_script:
   - cargo --version
 env:
   - CC=clang CXX=clang++
-  - CC=gcc CXX=g++
+  - CC=gcc-7 CXX=g++-7
 script:
   - cargo build --all --verbose
   # Run tests with --test-threads=1 as it looks like the linker runs out of memory
