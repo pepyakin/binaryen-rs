@@ -52,7 +52,7 @@ impl Module {
     /// This is not public since all IR-construction related operations were removed from
     /// Binaryen and thus there is not much sense in creating an empty module.
     fn new() -> Module {
-        unsafe { 
+        unsafe {
             let raw = ffi::BinaryenModuleCreate();
             Module::from_raw(raw)
         }
@@ -143,7 +143,7 @@ impl Module {
                vec![]
             } else {
                 slice::from_raw_parts(
-                    write_result.binary as *const u8, 
+                    write_result.binary as *const u8,
                     write_result.binaryBytes
                 ).to_vec()
             };
@@ -178,7 +178,7 @@ mod tests {
 
     #[test]
     fn test_optimization_passes() {
-        const CODE: &'static str = 
+        const CODE: &'static str =
         r#"
             (module
                 (table 1 1 anyfunc)
@@ -291,7 +291,7 @@ mod tests {
             "vacuum",
         ];
         for pass in pass_list.iter() {
-            assert!(is_valid_pass(pass));
+            assert!(is_valid_pass(pass), "not a valid pass: {}", pass);
         }
     }
 

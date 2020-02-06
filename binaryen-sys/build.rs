@@ -8,8 +8,6 @@ use heck::CamelCase;
 use regex::Regex;
 use std::env;
 use std::fs;
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -38,25 +36,20 @@ struct Pass {
 }
 
 fn read_passes() -> Vec<Pass> {
-    let re = Regex::new(r#"registerPass\("([^"]+)", "([^"]+)", [^)]+\);"#).unwrap();
+    let re = Regex::new(r#"registerPass\(\s*"([^"]+)",\s*("[^"]+"\s*)+,\s*[^)]+\s*\);"#).unwrap();
 
     let mut passes: Vec<Pass> = vec![];
 
-    let input = File::open("binaryen/src/passes/pass.cpp").expect("Couldn't open pass.cpp");
-    for line in BufReader::new(input).lines() {
-        let line = line.unwrap();
-        let caps = re.captures(&line);
-        if caps.is_some() {
-            let caps = caps.unwrap();
-            let name = caps.get(1).unwrap().as_str();
-            let description = caps.get(2).unwrap().as_str();
+    let input = std::fs::read_to_string("binaryen/src/passes/pass.cpp").expect("Couldn't open pass.cpp");
+    for caps in re.captures_iter(&input) {
+        let name = caps.get(1).unwrap().as_str();
+        let description = caps.get(2).unwrap().as_str().replace("\"", "");
 
-            passes.push(Pass {
-                id: name.to_camel_case(),
-                name: name.to_string(),
-                description: description.to_string(),
-            });
-        }
+        passes.push(Pass {
+            id: name.to_camel_case(),
+            name: name.to_string(),
+            description: description.to_string(),
+        });
     }
 
     passes
@@ -192,13 +185,6 @@ fn main() {
 
     println!("cargo:rustc-link-search=native={}/build/lib", dst.display());
     println!("cargo:rustc-link-lib=static=binaryen");
-    println!("cargo:rustc-link-lib=static=asmjs");
-    println!("cargo:rustc-link-lib=static=cfg");
-    println!("cargo:rustc-link-lib=static=ir");
-    println!("cargo:rustc-link-lib=static=passes");
-    println!("cargo:rustc-link-lib=static=support");
-    println!("cargo:rustc-link-lib=static=wasm");
-    println!("cargo:rustc-link-lib=static=emscripten-optimizer");
 
     // We need to link against C++ std lib
     if let Some(cpp_stdlib) = get_cpp_stdlib() {
@@ -211,7 +197,7 @@ fn main() {
         .cpp_link_stdlib(None)
         .warnings(false)
         .cpp(true)
-        .flag("-std=c++11")
+        .flag("-std=c++14")
         .compile("binaryen_shim");
 }
 
