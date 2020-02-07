@@ -8,11 +8,11 @@ extern crate wat;
 
 pub use binaryen_sys as ffi;
 
-use std::rc::Rc;
-use std::os::raw::c_char;
-use std::{ptr, slice};
 use std::ffi::CString;
+use std::os::raw::c_char;
+use std::rc::Rc;
 use std::str::FromStr;
+use std::{ptr, slice};
 
 pub mod tools;
 
@@ -65,7 +65,7 @@ impl Module {
         unsafe {
             let raw = ffi::BinaryenModuleSafeRead(module.as_ptr() as *const c_char, module.len());
             if raw.is_null() {
-               return Err(())
+                return Err(());
             }
             Ok(Module::from_raw(raw))
         }
@@ -84,7 +84,7 @@ impl Module {
                 self.inner.raw,
                 codegen_config.shrink_level as i32,
                 codegen_config.optimization_level as i32,
-                codegen_config.debug_info as i32
+                codegen_config.debug_info as i32,
             )
         }
     }
@@ -93,7 +93,7 @@ impl Module {
     pub fn run_optimization_passes<B: AsRef<str>, I: IntoIterator<Item = B>>(
         &mut self,
         passes: I,
-        codegen_config: &CodegenConfig
+        codegen_config: &CodegenConfig,
     ) -> Result<(), ()> {
         let mut cstr_vec: Vec<_> = vec![];
 
@@ -106,10 +106,7 @@ impl Module {
         }
 
         // NOTE: BinaryenModuleRunPasses expectes a mutable ptr
-        let mut ptr_vec: Vec<_> = cstr_vec
-            .iter()
-            .map(|pass| pass.as_ptr())
-            .collect();
+        let mut ptr_vec: Vec<_> = cstr_vec.iter().map(|pass| pass.as_ptr()).collect();
 
         unsafe {
             ffi::BinaryenModuleRunPassesWithSettings(
@@ -118,7 +115,7 @@ impl Module {
                 ptr_vec.len() as u32,
                 codegen_config.shrink_level as i32,
                 codegen_config.optimization_level as i32,
-                codegen_config.debug_info as i32
+                codegen_config.debug_info as i32,
             )
         };
         Ok(())
@@ -140,12 +137,10 @@ impl Module {
 
             // Create a slice from the resulting array and then copy it in vector.
             let binary_buf = if write_result.binaryBytes == 0 {
-               vec![]
+                vec![]
             } else {
-                slice::from_raw_parts(
-                    write_result.binary as *const u8,
-                    write_result.binaryBytes
-                ).to_vec()
+                slice::from_raw_parts(write_result.binary as *const u8, write_result.binaryBytes)
+                    .to_vec()
             };
 
             // This will free buffers in the write_result.
@@ -178,8 +173,7 @@ mod tests {
 
     #[test]
     fn test_optimization_passes() {
-        const CODE: &'static str =
-        r#"
+        const CODE: &'static str = r#"
             (module
                 (table 1 1 anyfunc)
 
@@ -195,7 +189,9 @@ mod tests {
 
         assert!(module.is_valid());
 
-        module.run_optimization_passes(&["vacuum", "untee"], &CodegenConfig::default()).expect("passes succeeded");
+        module
+            .run_optimization_passes(&["vacuum", "untee"], &CodegenConfig::default())
+            .expect("passes succeeded");
 
         assert!(module.is_valid());
     }
@@ -203,7 +199,9 @@ mod tests {
     #[test]
     fn test_invalid_optimization_passes() {
         let mut module = Module::new();
-        assert!(module.run_optimization_passes(&["invalid"], &CodegenConfig::default()).is_err());
+        assert!(module
+            .run_optimization_passes(&["invalid"], &CodegenConfig::default())
+            .is_err());
     }
 
     #[test]
