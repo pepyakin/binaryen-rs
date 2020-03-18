@@ -23,8 +23,18 @@ fn test_bindings_up_to_date() {
         std::fs::write("src/bindings.rs", expected).unwrap();
     } else {
         let actual = include_str!("../src/bindings.rs");
-        if expected != actual {
-            panic!("bindgen needs to be rerun");
+        if expected == actual {
+            return;
         }
+
+        for diff in diff::lines(&expected, &actual) {
+            match diff {
+                diff::Result::Both(_ ,s) => println!(" {}", s),
+                diff::Result::Left(s) => println!("-{}", s),
+                diff::Result::Right(s) => println!("+{}", s),
+            }
+        }
+
+        panic!("differences found, need to regenerate bindings");
     }
 }
