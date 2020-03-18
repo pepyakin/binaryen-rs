@@ -15,6 +15,10 @@ fn test_bindings_up_to_date() {
         .generate_comments(true)
         // https://github.com/rust-lang-nursery/rust-bindgen/issues/947#issuecomment-327100002
         .layout_tests(false)
+        .whitelist_function("Binaryen.*")
+        .whitelist_type("Binaryen.*")
+        .whitelist_function("translateToFuzz")
+        .whitelist_recursively(false)
         .generate()
         .expect("Unable to generate bindings")
         .to_string();
