@@ -1,4 +1,3 @@
-extern crate bindgen;
 extern crate cc;
 extern crate cmake;
 extern crate heck;
@@ -10,23 +9,6 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-
-fn gen_bindings() {
-    let bindings = bindgen::Builder::default()
-        .header("wrapper.h")
-        // See https://github.com/rust-lang-nursery/rust-bindgen/issues/947
-        .trust_clang_mangling(false)
-        .generate_comments(true)
-        // https://github.com/rust-lang-nursery/rust-bindgen/issues/947#issuecomment-327100002
-        .layout_tests(false)
-        .generate()
-        .expect("Unable to generate bindings");
-
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
-    bindings
-        .write_to_file(out_path.join("bindings.rs"))
-        .expect("Couldn't write bindings!");
-}
 
 #[derive(Clone, PartialEq, Debug)]
 struct Pass {
@@ -156,7 +138,6 @@ fn main() {
     }
 
     gen_passes();
-    gen_bindings();
 
     let target = env::var("TARGET").ok();
     if target.map_or(false, |target| target.contains("emscripten")) {
