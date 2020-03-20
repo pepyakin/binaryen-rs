@@ -21,6 +21,7 @@ env:
   - CC=clang CXX=clang++
   - CC=gcc-7 CXX=g++-7
 script:
+  - rustup component add rustfmt
   - cargo build --all --verbose
   # Run tests with --test-threads=1 as it looks like the linker runs out of memory
   # when linking doctests in parallel.
