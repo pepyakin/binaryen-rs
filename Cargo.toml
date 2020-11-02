@@ -1,7 +1,7 @@
 [package]
-
 name = "binaryen"
-version = "0.11.0"
+# See docs/RELEASING.md
+version = "0.12.0"
 authors = ["Sergey Pepyakin <s.pepyakin@gmail.com>"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -12,7 +12,7 @@ categories = ["api-bindings"]
 keywords = ["binaryen", "webassembly", "wasm", "compiler"]
 
 [dependencies]
-binaryen-sys = { path = "binaryen-sys", version = "0.11.0" }
+binaryen-sys = { path = "binaryen-sys", version = "0.12.0" }
 
 [dev-dependencies]
 rand = "0.7.0"
