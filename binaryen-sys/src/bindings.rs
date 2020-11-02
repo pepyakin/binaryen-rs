@@ -44,7 +44,7 @@ impl<T> ::std::cmp::PartialEq for __BindgenUnionField<T> {
 }
 impl<T> ::std::cmp::Eq for __BindgenUnionField<T> {}
 pub type BinaryenIndex = u32;
-pub type BinaryenType = u32;
+pub type BinaryenType = usize;
 extern "C" {
     pub fn BinaryenTypeNone() -> BinaryenType;
 }
@@ -67,13 +67,19 @@ extern "C" {
     pub fn BinaryenTypeFuncref() -> BinaryenType;
 }
 extern "C" {
-    pub fn BinaryenTypeAnyref() -> BinaryenType;
-}
-extern "C" {
-    pub fn BinaryenTypeNullref() -> BinaryenType;
+    pub fn BinaryenTypeExternref() -> BinaryenType;
 }
 extern "C" {
     pub fn BinaryenTypeExnref() -> BinaryenType;
+}
+extern "C" {
+    pub fn BinaryenTypeAnyref() -> BinaryenType;
+}
+extern "C" {
+    pub fn BinaryenTypeEqref() -> BinaryenType;
+}
+extern "C" {
+    pub fn BinaryenTypeI31ref() -> BinaryenType;
 }
 extern "C" {
     pub fn BinaryenTypeUnreachable() -> BinaryenType;
@@ -170,7 +176,10 @@ extern "C" {
     pub fn BinaryenReturnId() -> BinaryenExpressionId;
 }
 extern "C" {
-    pub fn BinaryenHostId() -> BinaryenExpressionId;
+    pub fn BinaryenMemorySizeId() -> BinaryenExpressionId;
+}
+extern "C" {
+    pub fn BinaryenMemoryGrowId() -> BinaryenExpressionId;
 }
 extern "C" {
     pub fn BinaryenNopId() -> BinaryenExpressionId;
@@ -233,6 +242,9 @@ extern "C" {
     pub fn BinaryenRefFuncId() -> BinaryenExpressionId;
 }
 extern "C" {
+    pub fn BinaryenRefEqId() -> BinaryenExpressionId;
+}
+extern "C" {
     pub fn BinaryenTryId() -> BinaryenExpressionId;
 }
 extern "C" {
@@ -245,10 +257,55 @@ extern "C" {
     pub fn BinaryenBrOnExnId() -> BinaryenExpressionId;
 }
 extern "C" {
-    pub fn BinaryenPushId() -> BinaryenExpressionId;
+    pub fn BinaryenTupleMakeId() -> BinaryenExpressionId;
+}
+extern "C" {
+    pub fn BinaryenTupleExtractId() -> BinaryenExpressionId;
 }
 extern "C" {
     pub fn BinaryenPopId() -> BinaryenExpressionId;
+}
+extern "C" {
+    pub fn BinaryenI31NewId() -> BinaryenExpressionId;
+}
+extern "C" {
+    pub fn BinaryenI31GetId() -> BinaryenExpressionId;
+}
+extern "C" {
+    pub fn BinaryenRefTestId() -> BinaryenExpressionId;
+}
+extern "C" {
+    pub fn BinaryenRefCastId() -> BinaryenExpressionId;
+}
+extern "C" {
+    pub fn BinaryenBrOnCastId() -> BinaryenExpressionId;
+}
+extern "C" {
+    pub fn BinaryenRttCanonId() -> BinaryenExpressionId;
+}
+extern "C" {
+    pub fn BinaryenRttSubId() -> BinaryenExpressionId;
+}
+extern "C" {
+    pub fn BinaryenStructNewId() -> BinaryenExpressionId;
+}
+extern "C" {
+    pub fn BinaryenStructGetId() -> BinaryenExpressionId;
+}
+extern "C" {
+    pub fn BinaryenStructSetId() -> BinaryenExpressionId;
+}
+extern "C" {
+    pub fn BinaryenArrayNewId() -> BinaryenExpressionId;
+}
+extern "C" {
+    pub fn BinaryenArrayGetId() -> BinaryenExpressionId;
+}
+extern "C" {
+    pub fn BinaryenArraySetId() -> BinaryenExpressionId;
+}
+extern "C" {
+    pub fn BinaryenArrayLenId() -> BinaryenExpressionId;
 }
 pub type BinaryenExternalKind = u32;
 extern "C" {
@@ -298,6 +355,15 @@ extern "C" {
     pub fn BinaryenFeatureReferenceTypes() -> BinaryenFeatures;
 }
 extern "C" {
+    pub fn BinaryenFeatureMultivalue() -> BinaryenFeatures;
+}
+extern "C" {
+    pub fn BinaryenFeatureGC() -> BinaryenFeatures;
+}
+extern "C" {
+    pub fn BinaryenFeatureMemory64() -> BinaryenFeatures;
+}
+extern "C" {
     pub fn BinaryenFeatureAll() -> BinaryenFeatures;
 }
 #[repr(C)]
@@ -314,7 +380,7 @@ extern "C" {
 }
 #[repr(C)]
 pub struct BinaryenLiteral {
-    pub type_: i32,
+    pub type_: usize,
     pub __bindgen_anon_1: BinaryenLiteral__bindgen_ty_1,
 }
 #[repr(C)]
@@ -734,12 +800,6 @@ extern "C" {
     pub fn BinaryenGeFloat64() -> BinaryenOp;
 }
 extern "C" {
-    pub fn BinaryenMemorySize() -> BinaryenOp;
-}
-extern "C" {
-    pub fn BinaryenMemoryGrow() -> BinaryenOp;
-}
-extern "C" {
     pub fn BinaryenAtomicRMWAdd() -> BinaryenOp;
 }
 extern "C" {
@@ -986,6 +1046,9 @@ extern "C" {
     pub fn BinaryenBitselectVec128() -> BinaryenOp;
 }
 extern "C" {
+    pub fn BinaryenAbsVecI8x16() -> BinaryenOp;
+}
+extern "C" {
     pub fn BinaryenNegVecI8x16() -> BinaryenOp;
 }
 extern "C" {
@@ -993,6 +1056,9 @@ extern "C" {
 }
 extern "C" {
     pub fn BinaryenAllTrueVecI8x16() -> BinaryenOp;
+}
+extern "C" {
+    pub fn BinaryenBitmaskVecI8x16() -> BinaryenOp;
 }
 extern "C" {
     pub fn BinaryenShlVecI8x16() -> BinaryenOp;
@@ -1040,6 +1106,9 @@ extern "C" {
     pub fn BinaryenAvgrUVecI8x16() -> BinaryenOp;
 }
 extern "C" {
+    pub fn BinaryenAbsVecI16x8() -> BinaryenOp;
+}
+extern "C" {
     pub fn BinaryenNegVecI16x8() -> BinaryenOp;
 }
 extern "C" {
@@ -1047,6 +1116,9 @@ extern "C" {
 }
 extern "C" {
     pub fn BinaryenAllTrueVecI16x8() -> BinaryenOp;
+}
+extern "C" {
+    pub fn BinaryenBitmaskVecI16x8() -> BinaryenOp;
 }
 extern "C" {
     pub fn BinaryenShlVecI16x8() -> BinaryenOp;
@@ -1094,6 +1166,9 @@ extern "C" {
     pub fn BinaryenAvgrUVecI16x8() -> BinaryenOp;
 }
 extern "C" {
+    pub fn BinaryenAbsVecI32x4() -> BinaryenOp;
+}
+extern "C" {
     pub fn BinaryenNegVecI32x4() -> BinaryenOp;
 }
 extern "C" {
@@ -1101,6 +1176,9 @@ extern "C" {
 }
 extern "C" {
     pub fn BinaryenAllTrueVecI32x4() -> BinaryenOp;
+}
+extern "C" {
+    pub fn BinaryenBitmaskVecI32x4() -> BinaryenOp;
 }
 extern "C" {
     pub fn BinaryenShlVecI32x4() -> BinaryenOp;
@@ -1160,6 +1238,9 @@ extern "C" {
     pub fn BinaryenSubVecI64x2() -> BinaryenOp;
 }
 extern "C" {
+    pub fn BinaryenMulVecI64x2() -> BinaryenOp;
+}
+extern "C" {
     pub fn BinaryenAbsVecF32x4() -> BinaryenOp;
 }
 extern "C" {
@@ -1193,6 +1274,24 @@ extern "C" {
     pub fn BinaryenMaxVecF32x4() -> BinaryenOp;
 }
 extern "C" {
+    pub fn BinaryenPMinVecF32x4() -> BinaryenOp;
+}
+extern "C" {
+    pub fn BinaryenPMaxVecF32x4() -> BinaryenOp;
+}
+extern "C" {
+    pub fn BinaryenCeilVecF32x4() -> BinaryenOp;
+}
+extern "C" {
+    pub fn BinaryenFloorVecF32x4() -> BinaryenOp;
+}
+extern "C" {
+    pub fn BinaryenTruncVecF32x4() -> BinaryenOp;
+}
+extern "C" {
+    pub fn BinaryenNearestVecF32x4() -> BinaryenOp;
+}
+extern "C" {
     pub fn BinaryenAbsVecF64x2() -> BinaryenOp;
 }
 extern "C" {
@@ -1224,6 +1323,24 @@ extern "C" {
 }
 extern "C" {
     pub fn BinaryenMaxVecF64x2() -> BinaryenOp;
+}
+extern "C" {
+    pub fn BinaryenPMinVecF64x2() -> BinaryenOp;
+}
+extern "C" {
+    pub fn BinaryenPMaxVecF64x2() -> BinaryenOp;
+}
+extern "C" {
+    pub fn BinaryenCeilVecF64x2() -> BinaryenOp;
+}
+extern "C" {
+    pub fn BinaryenFloorVecF64x2() -> BinaryenOp;
+}
+extern "C" {
+    pub fn BinaryenTruncVecF64x2() -> BinaryenOp;
+}
+extern "C" {
+    pub fn BinaryenNearestVecF64x2() -> BinaryenOp;
 }
 extern "C" {
     pub fn BinaryenTruncSatSVecF32x4ToVecI32x4() -> BinaryenOp;
@@ -1505,12 +1622,12 @@ extern "C" {
     ) -> BinaryenExpressionRef;
 }
 extern "C" {
-    pub fn BinaryenHost(
+    pub fn BinaryenMemorySize(module: BinaryenModuleRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenMemoryGrow(
         module: BinaryenModuleRef,
-        op: BinaryenOp,
-        name: *const ::std::os::raw::c_char,
-        operands: *mut BinaryenExpressionRef,
-        numOperands: BinaryenIndex,
+        delta: BinaryenExpressionRef,
     ) -> BinaryenExpressionRef;
 }
 extern "C" {
@@ -1659,7 +1776,8 @@ extern "C" {
     ) -> BinaryenExpressionRef;
 }
 extern "C" {
-    pub fn BinaryenRefNull(module: BinaryenModuleRef) -> BinaryenExpressionRef;
+    pub fn BinaryenRefNull(module: BinaryenModuleRef, type_: BinaryenType)
+        -> BinaryenExpressionRef;
 }
 extern "C" {
     pub fn BinaryenRefIsNull(
@@ -1671,6 +1789,13 @@ extern "C" {
     pub fn BinaryenRefFunc(
         module: BinaryenModuleRef,
         func: *const ::std::os::raw::c_char,
+    ) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenRefEq(
+        module: BinaryenModuleRef,
+        left: BinaryenExpressionRef,
+        right: BinaryenExpressionRef,
     ) -> BinaryenExpressionRef;
 }
 extern "C" {
@@ -1703,13 +1828,34 @@ extern "C" {
     ) -> BinaryenExpressionRef;
 }
 extern "C" {
-    pub fn BinaryenPush(
+    pub fn BinaryenTupleMake(
+        module: BinaryenModuleRef,
+        operands: *mut BinaryenExpressionRef,
+        numOperands: BinaryenIndex,
+    ) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenTupleExtract(
+        module: BinaryenModuleRef,
+        tuple: BinaryenExpressionRef,
+        index: BinaryenIndex,
+    ) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenPop(module: BinaryenModuleRef, type_: BinaryenType) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenI31New(
         module: BinaryenModuleRef,
         value: BinaryenExpressionRef,
     ) -> BinaryenExpressionRef;
 }
 extern "C" {
-    pub fn BinaryenPop(module: BinaryenModuleRef, type_: BinaryenType) -> BinaryenExpressionRef;
+    pub fn BinaryenI31Get(
+        module: BinaryenModuleRef,
+        i31: BinaryenExpressionRef,
+        signed_: ::std::os::raw::c_int,
+    ) -> BinaryenExpressionRef;
 }
 extern "C" {
     pub fn BinaryenExpressionGetId(expr: BinaryenExpressionRef) -> BinaryenExpressionId;
@@ -1718,16 +1864,57 @@ extern "C" {
     pub fn BinaryenExpressionGetType(expr: BinaryenExpressionRef) -> BinaryenType;
 }
 extern "C" {
+    pub fn BinaryenExpressionSetType(expr: BinaryenExpressionRef, type_: BinaryenType);
+}
+extern "C" {
     pub fn BinaryenExpressionPrint(expr: BinaryenExpressionRef);
+}
+extern "C" {
+    pub fn BinaryenExpressionFinalize(expr: BinaryenExpressionRef);
+}
+extern "C" {
+    pub fn BinaryenExpressionCopy(
+        expr: BinaryenExpressionRef,
+        module: BinaryenModuleRef,
+    ) -> BinaryenExpressionRef;
 }
 extern "C" {
     pub fn BinaryenBlockGetName(expr: BinaryenExpressionRef) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
+    pub fn BinaryenBlockSetName(expr: BinaryenExpressionRef, name: *const ::std::os::raw::c_char);
+}
+extern "C" {
     pub fn BinaryenBlockGetNumChildren(expr: BinaryenExpressionRef) -> BinaryenIndex;
 }
 extern "C" {
-    pub fn BinaryenBlockGetChild(
+    pub fn BinaryenBlockGetChildAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+    ) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenBlockSetChildAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+        childExpr: BinaryenExpressionRef,
+    );
+}
+extern "C" {
+    pub fn BinaryenBlockAppendChild(
+        expr: BinaryenExpressionRef,
+        childExpr: BinaryenExpressionRef,
+    ) -> BinaryenIndex;
+}
+extern "C" {
+    pub fn BinaryenBlockInsertChildAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+        childExpr: BinaryenExpressionRef,
+    );
+}
+extern "C" {
+    pub fn BinaryenBlockRemoveChildAt(
         expr: BinaryenExpressionRef,
         index: BinaryenIndex,
     ) -> BinaryenExpressionRef;
@@ -1736,31 +1923,81 @@ extern "C" {
     pub fn BinaryenIfGetCondition(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenIfSetCondition(expr: BinaryenExpressionRef, condExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenIfGetIfTrue(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenIfSetIfTrue(expr: BinaryenExpressionRef, ifTrueExpr: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenIfGetIfFalse(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenIfSetIfFalse(expr: BinaryenExpressionRef, ifFalseExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenLoopGetName(expr: BinaryenExpressionRef) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn BinaryenLoopSetName(expr: BinaryenExpressionRef, name: *const ::std::os::raw::c_char);
 }
 extern "C" {
     pub fn BinaryenLoopGetBody(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenLoopSetBody(expr: BinaryenExpressionRef, bodyExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenBreakGetName(expr: BinaryenExpressionRef) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn BinaryenBreakSetName(expr: BinaryenExpressionRef, name: *const ::std::os::raw::c_char);
 }
 extern "C" {
     pub fn BinaryenBreakGetCondition(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenBreakSetCondition(expr: BinaryenExpressionRef, condExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenBreakGetValue(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenBreakSetValue(expr: BinaryenExpressionRef, valueExpr: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenSwitchGetNumNames(expr: BinaryenExpressionRef) -> BinaryenIndex;
 }
 extern "C" {
-    pub fn BinaryenSwitchGetName(
+    pub fn BinaryenSwitchGetNameAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn BinaryenSwitchSetNameAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+        name: *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
+    pub fn BinaryenSwitchAppendName(
+        expr: BinaryenExpressionRef,
+        name: *const ::std::os::raw::c_char,
+    ) -> BinaryenIndex;
+}
+extern "C" {
+    pub fn BinaryenSwitchInsertNameAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+        name: *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
+    pub fn BinaryenSwitchRemoveNameAt(
         expr: BinaryenExpressionRef,
         index: BinaryenIndex,
     ) -> *const ::std::os::raw::c_char;
@@ -1771,37 +2008,143 @@ extern "C" {
     ) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
+    pub fn BinaryenSwitchSetDefaultName(
+        expr: BinaryenExpressionRef,
+        name: *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
     pub fn BinaryenSwitchGetCondition(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenSwitchSetCondition(expr: BinaryenExpressionRef, condExpr: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenSwitchGetValue(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenSwitchSetValue(expr: BinaryenExpressionRef, valueExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenCallGetTarget(expr: BinaryenExpressionRef) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn BinaryenCallSetTarget(
+        expr: BinaryenExpressionRef,
+        target: *const ::std::os::raw::c_char,
+    );
 }
 extern "C" {
     pub fn BinaryenCallGetNumOperands(expr: BinaryenExpressionRef) -> BinaryenIndex;
 }
 extern "C" {
-    pub fn BinaryenCallGetOperand(
+    pub fn BinaryenCallGetOperandAt(
         expr: BinaryenExpressionRef,
         index: BinaryenIndex,
     ) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenCallSetOperandAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+        operandExpr: BinaryenExpressionRef,
+    );
+}
+extern "C" {
+    pub fn BinaryenCallAppendOperand(
+        expr: BinaryenExpressionRef,
+        operandExpr: BinaryenExpressionRef,
+    ) -> BinaryenIndex;
+}
+extern "C" {
+    pub fn BinaryenCallInsertOperandAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+        operandExpr: BinaryenExpressionRef,
+    );
+}
+extern "C" {
+    pub fn BinaryenCallRemoveOperandAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+    ) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenCallIsReturn(expr: BinaryenExpressionRef) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn BinaryenCallSetReturn(expr: BinaryenExpressionRef, isReturn: ::std::os::raw::c_int);
 }
 extern "C" {
     pub fn BinaryenCallIndirectGetTarget(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenCallIndirectSetTarget(
+        expr: BinaryenExpressionRef,
+        targetExpr: BinaryenExpressionRef,
+    );
+}
+extern "C" {
     pub fn BinaryenCallIndirectGetNumOperands(expr: BinaryenExpressionRef) -> BinaryenIndex;
 }
 extern "C" {
-    pub fn BinaryenCallIndirectGetOperand(
+    pub fn BinaryenCallIndirectGetOperandAt(
         expr: BinaryenExpressionRef,
         index: BinaryenIndex,
     ) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenCallIndirectSetOperandAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+        operandExpr: BinaryenExpressionRef,
+    );
+}
+extern "C" {
+    pub fn BinaryenCallIndirectAppendOperand(
+        expr: BinaryenExpressionRef,
+        operandExpr: BinaryenExpressionRef,
+    ) -> BinaryenIndex;
+}
+extern "C" {
+    pub fn BinaryenCallIndirectInsertOperandAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+        operandExpr: BinaryenExpressionRef,
+    );
+}
+extern "C" {
+    pub fn BinaryenCallIndirectRemoveOperandAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+    ) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenCallIndirectIsReturn(expr: BinaryenExpressionRef) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn BinaryenCallIndirectSetReturn(
+        expr: BinaryenExpressionRef,
+        isReturn: ::std::os::raw::c_int,
+    );
+}
+extern "C" {
+    pub fn BinaryenCallIndirectGetParams(expr: BinaryenExpressionRef) -> BinaryenType;
+}
+extern "C" {
+    pub fn BinaryenCallIndirectSetParams(expr: BinaryenExpressionRef, params: BinaryenType);
+}
+extern "C" {
+    pub fn BinaryenCallIndirectGetResults(expr: BinaryenExpressionRef) -> BinaryenType;
+}
+extern "C" {
+    pub fn BinaryenCallIndirectSetResults(expr: BinaryenExpressionRef, params: BinaryenType);
+}
+extern "C" {
     pub fn BinaryenLocalGetGetIndex(expr: BinaryenExpressionRef) -> BinaryenIndex;
+}
+extern "C" {
+    pub fn BinaryenLocalGetSetIndex(expr: BinaryenExpressionRef, index: BinaryenIndex);
 }
 extern "C" {
     pub fn BinaryenLocalSetIsTee(expr: BinaryenExpressionRef) -> ::std::os::raw::c_int;
@@ -1810,146 +2153,283 @@ extern "C" {
     pub fn BinaryenLocalSetGetIndex(expr: BinaryenExpressionRef) -> BinaryenIndex;
 }
 extern "C" {
+    pub fn BinaryenLocalSetSetIndex(expr: BinaryenExpressionRef, index: BinaryenIndex);
+}
+extern "C" {
     pub fn BinaryenLocalSetGetValue(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenLocalSetSetValue(expr: BinaryenExpressionRef, valueExpr: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenGlobalGetGetName(expr: BinaryenExpressionRef) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
+    pub fn BinaryenGlobalGetSetName(
+        expr: BinaryenExpressionRef,
+        name: *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
     pub fn BinaryenGlobalSetGetName(expr: BinaryenExpressionRef) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn BinaryenGlobalSetSetName(
+        expr: BinaryenExpressionRef,
+        name: *const ::std::os::raw::c_char,
+    );
 }
 extern "C" {
     pub fn BinaryenGlobalSetGetValue(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
-    pub fn BinaryenHostGetOp(expr: BinaryenExpressionRef) -> BinaryenOp;
+    pub fn BinaryenGlobalSetSetValue(expr: BinaryenExpressionRef, valueExpr: BinaryenExpressionRef);
 }
 extern "C" {
-    pub fn BinaryenHostGetNameOperand(expr: BinaryenExpressionRef)
-        -> *const ::std::os::raw::c_char;
+    pub fn BinaryenMemoryGrowGetDelta(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
-    pub fn BinaryenHostGetNumOperands(expr: BinaryenExpressionRef) -> BinaryenIndex;
-}
-extern "C" {
-    pub fn BinaryenHostGetOperand(
-        expr: BinaryenExpressionRef,
-        index: BinaryenIndex,
-    ) -> BinaryenExpressionRef;
+    pub fn BinaryenMemoryGrowSetDelta(expr: BinaryenExpressionRef, delta: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenLoadIsAtomic(expr: BinaryenExpressionRef) -> ::std::os::raw::c_int;
 }
 extern "C" {
+    pub fn BinaryenLoadSetAtomic(expr: BinaryenExpressionRef, isAtomic: ::std::os::raw::c_int);
+}
+extern "C" {
     pub fn BinaryenLoadIsSigned(expr: BinaryenExpressionRef) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn BinaryenLoadSetSigned(expr: BinaryenExpressionRef, isSigned: ::std::os::raw::c_int);
 }
 extern "C" {
     pub fn BinaryenLoadGetOffset(expr: BinaryenExpressionRef) -> u32;
 }
 extern "C" {
+    pub fn BinaryenLoadSetOffset(expr: BinaryenExpressionRef, offset: u32);
+}
+extern "C" {
     pub fn BinaryenLoadGetBytes(expr: BinaryenExpressionRef) -> u32;
+}
+extern "C" {
+    pub fn BinaryenLoadSetBytes(expr: BinaryenExpressionRef, bytes: u32);
 }
 extern "C" {
     pub fn BinaryenLoadGetAlign(expr: BinaryenExpressionRef) -> u32;
 }
 extern "C" {
+    pub fn BinaryenLoadSetAlign(expr: BinaryenExpressionRef, align: u32);
+}
+extern "C" {
     pub fn BinaryenLoadGetPtr(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenLoadSetPtr(expr: BinaryenExpressionRef, ptrExpr: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenStoreIsAtomic(expr: BinaryenExpressionRef) -> ::std::os::raw::c_int;
 }
 extern "C" {
+    pub fn BinaryenStoreSetAtomic(expr: BinaryenExpressionRef, isAtomic: ::std::os::raw::c_int);
+}
+extern "C" {
     pub fn BinaryenStoreGetBytes(expr: BinaryenExpressionRef) -> u32;
+}
+extern "C" {
+    pub fn BinaryenStoreSetBytes(expr: BinaryenExpressionRef, bytes: u32);
 }
 extern "C" {
     pub fn BinaryenStoreGetOffset(expr: BinaryenExpressionRef) -> u32;
 }
 extern "C" {
+    pub fn BinaryenStoreSetOffset(expr: BinaryenExpressionRef, offset: u32);
+}
+extern "C" {
     pub fn BinaryenStoreGetAlign(expr: BinaryenExpressionRef) -> u32;
+}
+extern "C" {
+    pub fn BinaryenStoreSetAlign(expr: BinaryenExpressionRef, align: u32);
 }
 extern "C" {
     pub fn BinaryenStoreGetPtr(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenStoreSetPtr(expr: BinaryenExpressionRef, ptrExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenStoreGetValue(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenStoreSetValue(expr: BinaryenExpressionRef, valueExpr: BinaryenExpressionRef);
+}
+extern "C" {
+    pub fn BinaryenStoreGetValueType(expr: BinaryenExpressionRef) -> BinaryenType;
+}
+extern "C" {
+    pub fn BinaryenStoreSetValueType(expr: BinaryenExpressionRef, valueType: BinaryenType);
 }
 extern "C" {
     pub fn BinaryenConstGetValueI32(expr: BinaryenExpressionRef) -> i32;
 }
 extern "C" {
+    pub fn BinaryenConstSetValueI32(expr: BinaryenExpressionRef, value: i32);
+}
+extern "C" {
     pub fn BinaryenConstGetValueI64(expr: BinaryenExpressionRef) -> i64;
+}
+extern "C" {
+    pub fn BinaryenConstSetValueI64(expr: BinaryenExpressionRef, value: i64);
 }
 extern "C" {
     pub fn BinaryenConstGetValueI64Low(expr: BinaryenExpressionRef) -> i32;
 }
 extern "C" {
+    pub fn BinaryenConstSetValueI64Low(expr: BinaryenExpressionRef, valueLow: i32);
+}
+extern "C" {
     pub fn BinaryenConstGetValueI64High(expr: BinaryenExpressionRef) -> i32;
+}
+extern "C" {
+    pub fn BinaryenConstSetValueI64High(expr: BinaryenExpressionRef, valueHigh: i32);
 }
 extern "C" {
     pub fn BinaryenConstGetValueF32(expr: BinaryenExpressionRef) -> f32;
 }
 extern "C" {
+    pub fn BinaryenConstSetValueF32(expr: BinaryenExpressionRef, value: f32);
+}
+extern "C" {
     pub fn BinaryenConstGetValueF64(expr: BinaryenExpressionRef) -> f64;
+}
+extern "C" {
+    pub fn BinaryenConstSetValueF64(expr: BinaryenExpressionRef, value: f64);
 }
 extern "C" {
     pub fn BinaryenConstGetValueV128(expr: BinaryenExpressionRef, out: *mut u8);
 }
 extern "C" {
+    pub fn BinaryenConstSetValueV128(expr: BinaryenExpressionRef, value: *const u8);
+}
+extern "C" {
     pub fn BinaryenUnaryGetOp(expr: BinaryenExpressionRef) -> BinaryenOp;
+}
+extern "C" {
+    pub fn BinaryenUnarySetOp(expr: BinaryenExpressionRef, op: BinaryenOp);
 }
 extern "C" {
     pub fn BinaryenUnaryGetValue(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenUnarySetValue(expr: BinaryenExpressionRef, valueExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenBinaryGetOp(expr: BinaryenExpressionRef) -> BinaryenOp;
+}
+extern "C" {
+    pub fn BinaryenBinarySetOp(expr: BinaryenExpressionRef, op: BinaryenOp);
 }
 extern "C" {
     pub fn BinaryenBinaryGetLeft(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenBinarySetLeft(expr: BinaryenExpressionRef, leftExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenBinaryGetRight(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenBinarySetRight(expr: BinaryenExpressionRef, rightExpr: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenSelectGetIfTrue(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenSelectSetIfTrue(expr: BinaryenExpressionRef, ifTrueExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenSelectGetIfFalse(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenSelectSetIfFalse(
+        expr: BinaryenExpressionRef,
+        ifFalseExpr: BinaryenExpressionRef,
+    );
 }
 extern "C" {
     pub fn BinaryenSelectGetCondition(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenSelectSetCondition(expr: BinaryenExpressionRef, condExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenDropGetValue(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenDropSetValue(expr: BinaryenExpressionRef, valueExpr: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenReturnGetValue(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenReturnSetValue(expr: BinaryenExpressionRef, valueExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenAtomicRMWGetOp(expr: BinaryenExpressionRef) -> BinaryenOp;
+}
+extern "C" {
+    pub fn BinaryenAtomicRMWSetOp(expr: BinaryenExpressionRef, op: BinaryenOp);
 }
 extern "C" {
     pub fn BinaryenAtomicRMWGetBytes(expr: BinaryenExpressionRef) -> u32;
 }
 extern "C" {
+    pub fn BinaryenAtomicRMWSetBytes(expr: BinaryenExpressionRef, bytes: u32);
+}
+extern "C" {
     pub fn BinaryenAtomicRMWGetOffset(expr: BinaryenExpressionRef) -> u32;
+}
+extern "C" {
+    pub fn BinaryenAtomicRMWSetOffset(expr: BinaryenExpressionRef, offset: u32);
 }
 extern "C" {
     pub fn BinaryenAtomicRMWGetPtr(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenAtomicRMWSetPtr(expr: BinaryenExpressionRef, ptrExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenAtomicRMWGetValue(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenAtomicRMWSetValue(expr: BinaryenExpressionRef, valueExpr: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenAtomicCmpxchgGetBytes(expr: BinaryenExpressionRef) -> u32;
 }
 extern "C" {
+    pub fn BinaryenAtomicCmpxchgSetBytes(expr: BinaryenExpressionRef, bytes: u32);
+}
+extern "C" {
     pub fn BinaryenAtomicCmpxchgGetOffset(expr: BinaryenExpressionRef) -> u32;
+}
+extern "C" {
+    pub fn BinaryenAtomicCmpxchgSetOffset(expr: BinaryenExpressionRef, offset: u32);
 }
 extern "C" {
     pub fn BinaryenAtomicCmpxchgGetPtr(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenAtomicCmpxchgSetPtr(expr: BinaryenExpressionRef, ptrExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenAtomicCmpxchgGetExpected(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenAtomicCmpxchgSetExpected(
+        expr: BinaryenExpressionRef,
+        expectedExpr: BinaryenExpressionRef,
+    );
 }
 extern "C" {
     pub fn BinaryenAtomicCmpxchgGetReplacement(
@@ -1957,161 +2437,453 @@ extern "C" {
     ) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenAtomicCmpxchgSetReplacement(
+        expr: BinaryenExpressionRef,
+        replacementExpr: BinaryenExpressionRef,
+    );
+}
+extern "C" {
     pub fn BinaryenAtomicWaitGetPtr(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenAtomicWaitSetPtr(expr: BinaryenExpressionRef, ptrExpr: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenAtomicWaitGetExpected(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenAtomicWaitSetExpected(
+        expr: BinaryenExpressionRef,
+        expectedExpr: BinaryenExpressionRef,
+    );
+}
+extern "C" {
     pub fn BinaryenAtomicWaitGetTimeout(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenAtomicWaitSetTimeout(
+        expr: BinaryenExpressionRef,
+        timeoutExpr: BinaryenExpressionRef,
+    );
 }
 extern "C" {
     pub fn BinaryenAtomicWaitGetExpectedType(expr: BinaryenExpressionRef) -> BinaryenType;
 }
 extern "C" {
+    pub fn BinaryenAtomicWaitSetExpectedType(
+        expr: BinaryenExpressionRef,
+        expectedType: BinaryenType,
+    );
+}
+extern "C" {
     pub fn BinaryenAtomicNotifyGetPtr(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenAtomicNotifySetPtr(expr: BinaryenExpressionRef, ptrExpr: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenAtomicNotifyGetNotifyCount(expr: BinaryenExpressionRef)
         -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenAtomicNotifySetNotifyCount(
+        expr: BinaryenExpressionRef,
+        notifyCountExpr: BinaryenExpressionRef,
+    );
+}
+extern "C" {
     pub fn BinaryenAtomicFenceGetOrder(expr: BinaryenExpressionRef) -> u8;
+}
+extern "C" {
+    pub fn BinaryenAtomicFenceSetOrder(expr: BinaryenExpressionRef, order: u8);
 }
 extern "C" {
     pub fn BinaryenSIMDExtractGetOp(expr: BinaryenExpressionRef) -> BinaryenOp;
 }
 extern "C" {
+    pub fn BinaryenSIMDExtractSetOp(expr: BinaryenExpressionRef, op: BinaryenOp);
+}
+extern "C" {
     pub fn BinaryenSIMDExtractGetVec(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenSIMDExtractSetVec(expr: BinaryenExpressionRef, vecExpr: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenSIMDExtractGetIndex(expr: BinaryenExpressionRef) -> u8;
 }
 extern "C" {
+    pub fn BinaryenSIMDExtractSetIndex(expr: BinaryenExpressionRef, index: u8);
+}
+extern "C" {
     pub fn BinaryenSIMDReplaceGetOp(expr: BinaryenExpressionRef) -> BinaryenOp;
+}
+extern "C" {
+    pub fn BinaryenSIMDReplaceSetOp(expr: BinaryenExpressionRef, op: BinaryenOp);
 }
 extern "C" {
     pub fn BinaryenSIMDReplaceGetVec(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenSIMDReplaceSetVec(expr: BinaryenExpressionRef, vecExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenSIMDReplaceGetIndex(expr: BinaryenExpressionRef) -> u8;
+}
+extern "C" {
+    pub fn BinaryenSIMDReplaceSetIndex(expr: BinaryenExpressionRef, index: u8);
 }
 extern "C" {
     pub fn BinaryenSIMDReplaceGetValue(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenSIMDReplaceSetValue(
+        expr: BinaryenExpressionRef,
+        valueExpr: BinaryenExpressionRef,
+    );
+}
+extern "C" {
     pub fn BinaryenSIMDShuffleGetLeft(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenSIMDShuffleSetLeft(expr: BinaryenExpressionRef, leftExpr: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenSIMDShuffleGetRight(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenSIMDShuffleSetRight(
+        expr: BinaryenExpressionRef,
+        rightExpr: BinaryenExpressionRef,
+    );
+}
+extern "C" {
     pub fn BinaryenSIMDShuffleGetMask(expr: BinaryenExpressionRef, mask: *mut u8);
+}
+extern "C" {
+    pub fn BinaryenSIMDShuffleSetMask(expr: BinaryenExpressionRef, mask: *const u8);
 }
 extern "C" {
     pub fn BinaryenSIMDTernaryGetOp(expr: BinaryenExpressionRef) -> BinaryenOp;
 }
 extern "C" {
+    pub fn BinaryenSIMDTernarySetOp(expr: BinaryenExpressionRef, op: BinaryenOp);
+}
+extern "C" {
     pub fn BinaryenSIMDTernaryGetA(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenSIMDTernarySetA(expr: BinaryenExpressionRef, aExpr: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenSIMDTernaryGetB(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenSIMDTernarySetB(expr: BinaryenExpressionRef, bExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenSIMDTernaryGetC(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenSIMDTernarySetC(expr: BinaryenExpressionRef, cExpr: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenSIMDShiftGetOp(expr: BinaryenExpressionRef) -> BinaryenOp;
 }
 extern "C" {
+    pub fn BinaryenSIMDShiftSetOp(expr: BinaryenExpressionRef, op: BinaryenOp);
+}
+extern "C" {
     pub fn BinaryenSIMDShiftGetVec(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenSIMDShiftSetVec(expr: BinaryenExpressionRef, vecExpr: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenSIMDShiftGetShift(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenSIMDShiftSetShift(expr: BinaryenExpressionRef, shiftExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenSIMDLoadGetOp(expr: BinaryenExpressionRef) -> BinaryenOp;
+}
+extern "C" {
+    pub fn BinaryenSIMDLoadSetOp(expr: BinaryenExpressionRef, op: BinaryenOp);
 }
 extern "C" {
     pub fn BinaryenSIMDLoadGetOffset(expr: BinaryenExpressionRef) -> u32;
 }
 extern "C" {
+    pub fn BinaryenSIMDLoadSetOffset(expr: BinaryenExpressionRef, offset: u32);
+}
+extern "C" {
     pub fn BinaryenSIMDLoadGetAlign(expr: BinaryenExpressionRef) -> u32;
+}
+extern "C" {
+    pub fn BinaryenSIMDLoadSetAlign(expr: BinaryenExpressionRef, align: u32);
 }
 extern "C" {
     pub fn BinaryenSIMDLoadGetPtr(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenSIMDLoadSetPtr(expr: BinaryenExpressionRef, ptrExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenMemoryInitGetSegment(expr: BinaryenExpressionRef) -> u32;
+}
+extern "C" {
+    pub fn BinaryenMemoryInitSetSegment(expr: BinaryenExpressionRef, segmentIndex: u32);
 }
 extern "C" {
     pub fn BinaryenMemoryInitGetDest(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenMemoryInitSetDest(expr: BinaryenExpressionRef, destExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenMemoryInitGetOffset(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenMemoryInitSetOffset(
+        expr: BinaryenExpressionRef,
+        offsetExpr: BinaryenExpressionRef,
+    );
 }
 extern "C" {
     pub fn BinaryenMemoryInitGetSize(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenMemoryInitSetSize(expr: BinaryenExpressionRef, sizeExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenDataDropGetSegment(expr: BinaryenExpressionRef) -> u32;
+}
+extern "C" {
+    pub fn BinaryenDataDropSetSegment(expr: BinaryenExpressionRef, segmentIndex: u32);
 }
 extern "C" {
     pub fn BinaryenMemoryCopyGetDest(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenMemoryCopySetDest(expr: BinaryenExpressionRef, destExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenMemoryCopyGetSource(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenMemoryCopySetSource(
+        expr: BinaryenExpressionRef,
+        sourceExpr: BinaryenExpressionRef,
+    );
 }
 extern "C" {
     pub fn BinaryenMemoryCopyGetSize(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenMemoryCopySetSize(expr: BinaryenExpressionRef, sizeExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenMemoryFillGetDest(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenMemoryFillSetDest(expr: BinaryenExpressionRef, destExpr: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenMemoryFillGetValue(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenMemoryFillSetValue(
+        expr: BinaryenExpressionRef,
+        valueExpr: BinaryenExpressionRef,
+    );
+}
+extern "C" {
     pub fn BinaryenMemoryFillGetSize(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenMemoryFillSetSize(expr: BinaryenExpressionRef, sizeExpr: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenRefIsNullGetValue(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenRefIsNullSetValue(expr: BinaryenExpressionRef, valueExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenRefFuncGetFunc(expr: BinaryenExpressionRef) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn BinaryenRefFuncSetFunc(
+        expr: BinaryenExpressionRef,
+        funcName: *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
+    pub fn BinaryenRefEqGetLeft(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenRefEqSetLeft(expr: BinaryenExpressionRef, left: BinaryenExpressionRef);
+}
+extern "C" {
+    pub fn BinaryenRefEqGetRight(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenRefEqSetRight(expr: BinaryenExpressionRef, right: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenTryGetBody(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
+    pub fn BinaryenTrySetBody(expr: BinaryenExpressionRef, bodyExpr: BinaryenExpressionRef);
+}
+extern "C" {
     pub fn BinaryenTryGetCatchBody(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenTrySetCatchBody(
+        expr: BinaryenExpressionRef,
+        catchBodyExpr: BinaryenExpressionRef,
+    );
 }
 extern "C" {
     pub fn BinaryenThrowGetEvent(expr: BinaryenExpressionRef) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
-    pub fn BinaryenThrowGetOperand(
+    pub fn BinaryenThrowSetEvent(
         expr: BinaryenExpressionRef,
-        index: BinaryenIndex,
-    ) -> BinaryenExpressionRef;
+        eventName: *const ::std::os::raw::c_char,
+    );
 }
 extern "C" {
     pub fn BinaryenThrowGetNumOperands(expr: BinaryenExpressionRef) -> BinaryenIndex;
 }
 extern "C" {
+    pub fn BinaryenThrowGetOperandAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+    ) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenThrowSetOperandAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+        operandExpr: BinaryenExpressionRef,
+    );
+}
+extern "C" {
+    pub fn BinaryenThrowAppendOperand(
+        expr: BinaryenExpressionRef,
+        operandExpr: BinaryenExpressionRef,
+    ) -> BinaryenIndex;
+}
+extern "C" {
+    pub fn BinaryenThrowInsertOperandAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+        operandExpr: BinaryenExpressionRef,
+    );
+}
+extern "C" {
+    pub fn BinaryenThrowRemoveOperandAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+    ) -> BinaryenExpressionRef;
+}
+extern "C" {
     pub fn BinaryenRethrowGetExnref(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenRethrowSetExnref(expr: BinaryenExpressionRef, exnrefExpr: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenBrOnExnGetEvent(expr: BinaryenExpressionRef) -> *const ::std::os::raw::c_char;
 }
 extern "C" {
+    pub fn BinaryenBrOnExnSetEvent(
+        expr: BinaryenExpressionRef,
+        eventName: *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
     pub fn BinaryenBrOnExnGetName(expr: BinaryenExpressionRef) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn BinaryenBrOnExnSetName(expr: BinaryenExpressionRef, name: *const ::std::os::raw::c_char);
 }
 extern "C" {
     pub fn BinaryenBrOnExnGetExnref(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
 }
 extern "C" {
-    pub fn BinaryenPushGetValue(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+    pub fn BinaryenBrOnExnSetExnref(expr: BinaryenExpressionRef, exnrefExpr: BinaryenExpressionRef);
+}
+extern "C" {
+    pub fn BinaryenTupleMakeGetNumOperands(expr: BinaryenExpressionRef) -> BinaryenIndex;
+}
+extern "C" {
+    pub fn BinaryenTupleMakeGetOperandAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+    ) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenTupleMakeSetOperandAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+        operandExpr: BinaryenExpressionRef,
+    );
+}
+extern "C" {
+    pub fn BinaryenTupleMakeAppendOperand(
+        expr: BinaryenExpressionRef,
+        operandExpr: BinaryenExpressionRef,
+    ) -> BinaryenIndex;
+}
+extern "C" {
+    pub fn BinaryenTupleMakeInsertOperandAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+        operandExpr: BinaryenExpressionRef,
+    );
+}
+extern "C" {
+    pub fn BinaryenTupleMakeRemoveOperandAt(
+        expr: BinaryenExpressionRef,
+        index: BinaryenIndex,
+    ) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenTupleExtractGetTuple(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenTupleExtractSetTuple(
+        expr: BinaryenExpressionRef,
+        tupleExpr: BinaryenExpressionRef,
+    );
+}
+extern "C" {
+    pub fn BinaryenTupleExtractGetIndex(expr: BinaryenExpressionRef) -> BinaryenIndex;
+}
+extern "C" {
+    pub fn BinaryenTupleExtractSetIndex(expr: BinaryenExpressionRef, index: BinaryenIndex);
+}
+extern "C" {
+    pub fn BinaryenI31NewGetValue(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenI31NewSetValue(expr: BinaryenExpressionRef, valueExpr: BinaryenExpressionRef);
+}
+extern "C" {
+    pub fn BinaryenI31GetGetI31(expr: BinaryenExpressionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenI31GetSetI31(expr: BinaryenExpressionRef, i31Expr: BinaryenExpressionRef);
+}
+extern "C" {
+    pub fn BinaryenI31GetIsSigned(expr: BinaryenExpressionRef) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn BinaryenI31GetSetSigned(expr: BinaryenExpressionRef, signed_: ::std::os::raw::c_int);
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -2309,6 +3081,31 @@ extern "C" {
     );
 }
 extern "C" {
+    pub fn BinaryenIsFunctionTableImported(module: BinaryenModuleRef) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn BinaryenGetNumFunctionTableSegments(module: BinaryenModuleRef) -> BinaryenIndex;
+}
+extern "C" {
+    pub fn BinaryenGetFunctionTableSegmentOffset(
+        module: BinaryenModuleRef,
+        segmentId: BinaryenIndex,
+    ) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenGetFunctionTableSegmentLength(
+        module: BinaryenModuleRef,
+        segmentId: BinaryenIndex,
+    ) -> BinaryenIndex;
+}
+extern "C" {
+    pub fn BinaryenGetFunctionTableSegmentData(
+        module: BinaryenModuleRef,
+        segmentId: BinaryenIndex,
+        dataId: BinaryenIndex,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
     pub fn BinaryenSetMemory(
         module: BinaryenModuleRef,
         initial: BinaryenIndex,
@@ -2388,6 +3185,56 @@ extern "C" {
 }
 extern "C" {
     pub fn BinaryenSetDebugInfo(on: ::std::os::raw::c_int);
+}
+extern "C" {
+    pub fn BinaryenGetLowMemoryUnused() -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn BinaryenSetLowMemoryUnused(on: ::std::os::raw::c_int);
+}
+extern "C" {
+    pub fn BinaryenGetFastMath() -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn BinaryenSetFastMath(value: ::std::os::raw::c_int);
+}
+extern "C" {
+    pub fn BinaryenGetPassArgument(
+        name: *const ::std::os::raw::c_char,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn BinaryenSetPassArgument(
+        name: *const ::std::os::raw::c_char,
+        value: *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
+    pub fn BinaryenClearPassArguments();
+}
+extern "C" {
+    pub fn BinaryenGetAlwaysInlineMaxSize() -> BinaryenIndex;
+}
+extern "C" {
+    pub fn BinaryenSetAlwaysInlineMaxSize(size: BinaryenIndex);
+}
+extern "C" {
+    pub fn BinaryenGetFlexibleInlineMaxSize() -> BinaryenIndex;
+}
+extern "C" {
+    pub fn BinaryenSetFlexibleInlineMaxSize(size: BinaryenIndex);
+}
+extern "C" {
+    pub fn BinaryenGetOneCallerInlineMaxSize() -> BinaryenIndex;
+}
+extern "C" {
+    pub fn BinaryenSetOneCallerInlineMaxSize(size: BinaryenIndex);
+}
+extern "C" {
+    pub fn BinaryenGetAllowInliningFunctionsWithLoops() -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn BinaryenSetAllowInliningFunctionsWithLoops(enabled: ::std::os::raw::c_int);
 }
 extern "C" {
     pub fn BinaryenModuleRunPasses(
@@ -2482,7 +3329,32 @@ extern "C" {
     pub fn BinaryenFunctionGetVar(func: BinaryenFunctionRef, index: BinaryenIndex) -> BinaryenType;
 }
 extern "C" {
+    pub fn BinaryenFunctionGetNumLocals(func: BinaryenFunctionRef) -> BinaryenIndex;
+}
+extern "C" {
+    pub fn BinaryenFunctionHasLocalName(
+        func: BinaryenFunctionRef,
+        index: BinaryenIndex,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn BinaryenFunctionGetLocalName(
+        func: BinaryenFunctionRef,
+        index: BinaryenIndex,
+    ) -> *const ::std::os::raw::c_char;
+}
+extern "C" {
+    pub fn BinaryenFunctionSetLocalName(
+        func: BinaryenFunctionRef,
+        index: BinaryenIndex,
+        name: *const ::std::os::raw::c_char,
+    );
+}
+extern "C" {
     pub fn BinaryenFunctionGetBody(func: BinaryenFunctionRef) -> BinaryenExpressionRef;
+}
+extern "C" {
+    pub fn BinaryenFunctionSetBody(func: BinaryenFunctionRef, body: BinaryenExpressionRef);
 }
 extern "C" {
     pub fn BinaryenFunctionOptimize(func: BinaryenFunctionRef, module: BinaryenModuleRef);
@@ -2616,6 +3488,9 @@ extern "C" {
     pub fn BinaryenSideEffectThrows() -> BinaryenSideEffects;
 }
 extern "C" {
+    pub fn BinaryenSideEffectDanglingPop() -> BinaryenSideEffects;
+}
+extern "C" {
     pub fn BinaryenSideEffectAny() -> BinaryenSideEffects;
 }
 extern "C" {
@@ -2623,9 +3498,6 @@ extern "C" {
         expr: BinaryenExpressionRef,
         features: BinaryenFeatures,
     ) -> BinaryenSideEffects;
-}
-extern "C" {
-    pub fn BinaryenSetAPITracing(on: ::std::os::raw::c_int);
 }
 extern "C" {
     pub fn BinaryenSetColorsEnabled(enabled: ::std::os::raw::c_int);
@@ -2649,14 +3521,6 @@ extern "C" {
 extern "C" {
     pub fn BinaryenShimDisposeBinaryenModuleAllocateAndWriteResult(
         result: BinaryenModuleAllocateAndWriteResult,
-    );
-}
-extern "C" {
-    pub fn BinaryenModuleOptimizeWithSettings(
-        module: BinaryenModuleRef,
-        shrinkLevel: ::std::os::raw::c_int,
-        optimizeLevel: ::std::os::raw::c_int,
-        debugInfo: ::std::os::raw::c_int,
     );
 }
 extern "C" {
