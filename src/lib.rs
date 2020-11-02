@@ -268,7 +268,6 @@ mod tests {
             "print-call-graph",
             "print-function-map",
             "print-stack-ir",
-            "relooper-jump-threading",
             "remove-non-js-ops",
             "remove-imports",
             "remove-memory",
