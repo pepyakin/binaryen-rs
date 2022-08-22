@@ -22,7 +22,7 @@ extern "C" BinaryenModuleRef BinaryenModuleSafeRead(const char* input, size_t in
     auto* wasm = new Module;
     vector<char> buffer(input, input + inputSize);
     try {
-        WasmBinaryBuilder parser(*wasm, buffer);
+        WasmBinaryBuilder parser(*wasm, FeatureSet::MVP, buffer);
         parser.read();
     } catch (ParseException const&) {
         // FIXME: support passing back the exception text
@@ -36,7 +36,7 @@ extern "C" BinaryenModuleRef translateToFuzz(const char *data, size_t len, bool 
 
     vector<char> input(data, data + len);
 
-    TranslateToFuzzReader reader(*module, input);
+    TranslateToFuzzReader reader(*module, std::move(input));
     if (emitAtomics) {
         module->features.setAtomics();
         module->hasFeaturesSection = true;

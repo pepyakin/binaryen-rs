@@ -22,7 +22,8 @@ fn read_passes() -> Vec<Pass> {
 
     let mut passes: Vec<Pass> = vec![];
 
-    let input = std::fs::read_to_string("binaryen/src/passes/pass.cpp").expect("Couldn't open pass.cpp");
+    let input =
+        std::fs::read_to_string("binaryen/src/passes/pass.cpp").expect("Couldn't open pass.cpp");
     for caps in re.captures_iter(&input) {
         let name = caps.get(1).unwrap().as_str();
         let description = caps.get(2).unwrap().as_str().replace("\"", "");
@@ -73,7 +74,8 @@ fn gen_passes() {
         })
         .collect();
 
-    let output = format!(r#"
+    let output = format!(
+        r#"
         use std::str::FromStr;
 
         #[derive(Eq, PartialEq, Debug)]
@@ -118,12 +120,12 @@ fn gen_passes() {
             }}
         }}
     "#,
-    ids = ids.join(",\n"),
-    fromstrs = fromstrs.join(",\n"),
-    descriptions = descriptions.join(",\n"),
-    test_id = passes[0].id.to_string(),
-    test_name = passes[0].name.to_string(),
-    test_description = passes[0].description.to_string()
+        ids = ids.join(",\n"),
+        fromstrs = fromstrs.join(",\n"),
+        descriptions = descriptions.join(",\n"),
+        test_id = passes[0].id.to_string(),
+        test_name = passes[0].name.to_string(),
+        test_description = passes[0].description.to_string()
     );
 
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
@@ -178,7 +180,7 @@ fn main() {
         .cpp_link_stdlib(None)
         .warnings(false)
         .cpp(true)
-        .flag("-std=c++14")
+        .flag("-std=c++17")
         .compile("binaryen_shim");
 }
 
