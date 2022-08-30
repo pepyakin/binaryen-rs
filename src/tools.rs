@@ -1,6 +1,6 @@
 use ffi;
-use Module;
 use std::os::raw::c_char;
+use Module;
 
 /// Convert some random array of bytes to a Module.
 pub fn translate_to_fuzz(seed: &[u8]) -> Module {
