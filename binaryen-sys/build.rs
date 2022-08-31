@@ -142,7 +142,7 @@ fn main() {
     gen_passes();
 
     let target = env::var("TARGET").ok();
-    if target.map_or(false, |target| target.contains("emscripten")) {
+    if target.as_ref().map_or(false, |target| target.contains("emscripten")) {
         let mut build_wasm_binaryen_args = vec![];
         if get_debug() {
             build_wasm_binaryen_args.push("-g");
@@ -175,6 +175,11 @@ fn main() {
     }
 
     let mut cfg = cc::Build::new();
+    if target.as_ref().map_or(false, |target| target.contains("msvc")) {
+        // fixes: C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc
+        // https://github.com/pepyakin/binaryen-rs/runs/8112353194?check_suite_focus=true#step:4:2391
+        cfg.flag_if_supported("/EHsc");
+    }
     cfg.file("Shim.cpp")
         // See binaryen-sys/binaryen/src/tools/CMakeLists.txt
         .files(&[
