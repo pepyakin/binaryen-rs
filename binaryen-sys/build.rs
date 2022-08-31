@@ -175,10 +175,13 @@ fn main() {
     }
 
     let mut cfg = cc::Build::new();
-    if target.as_ref().map_or(false, |target| target.contains("msvc")) {
+    if cfg.get_compiler().is_like_msvc() {
+        cfg.flag("/std:c++17");
         // fixes: C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc
         // https://github.com/pepyakin/binaryen-rs/runs/8112353194?check_suite_focus=true#step:4:2391
-        cfg.flag_if_supported("/EHsc");
+        cfg.flag("/EHsc");
+    } else {
+        cfg.flag("-std=c++17");
     }
     cfg.file("Shim.cpp")
         // See binaryen-sys/binaryen/src/tools/CMakeLists.txt
