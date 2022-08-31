@@ -176,6 +176,12 @@ fn main() {
 
     let mut cfg = cc::Build::new();
     cfg.file("Shim.cpp")
+        // See binaryen-sys/binaryen/src/tools/CMakeLists.txt
+        .files(&[
+            "binaryen/src/tools/fuzzing/fuzzing.cpp",
+            "binaryen/src/tools/fuzzing/heap-types.cpp",
+            "binaryen/src/tools/fuzzing/random.cpp",
+        ])
         .include("binaryen/src")
         .cpp_link_stdlib(None)
         .warnings(false)

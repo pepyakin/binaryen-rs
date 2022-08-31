@@ -33,7 +33,7 @@ fn test_bindings_up_to_date() {
 
         for diff in diff::lines(&expected, &actual) {
             match diff {
-                diff::Result::Both(_ ,s) => println!(" {}", s),
+                diff::Result::Both(_, s) => println!(" {}", s),
                 diff::Result::Left(s) => println!("-{}", s),
                 diff::Result::Right(s) => println!("+{}", s),
             }
