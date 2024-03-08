@@ -22,7 +22,7 @@ extern "C" BinaryenModuleRef BinaryenModuleSafeRead(const char* input, size_t in
     auto* wasm = new Module;
     vector<char> buffer(input, input + inputSize);
     try {
-        WasmBinaryBuilder parser(*wasm, FeatureSet::MVP, buffer);
+        WasmBinaryReader parser(*wasm, FeatureSet::MVP, buffer);
         parser.read();
     } catch (ParseException const&) {
         // FIXME: support passing back the exception text
