@@ -177,7 +177,7 @@ mod tests {
     fn test_optimization_passes() {
         const CODE: &'static str = r#"
             (module
-                (table 1 1 anyfunc)
+                (table 1 1 funcref)
 
                 (type $return_i32 (func (result i32)))
                 (func $test (; 0 ;) (result i32)
