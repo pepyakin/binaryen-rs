@@ -164,6 +164,7 @@ fn main() {
     let dst = cmake::Config::new("binaryen")
         .define("BUILD_STATIC_LIB", "ON")
         .define("ENABLE_WERROR", "OFF")
+        .define("BUILD_TESTS", "OFF")
         .build();
 
     println!("cargo:rustc-link-search=native={}/build/lib", dst.display());
