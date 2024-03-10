@@ -2,6 +2,7 @@
 name = "binaryen-sys"
 # See docs/RELEASING.md
 version = "0.13.0"
+edition = "2021"
 authors = ["Sergey Pepyakin <s.pepyakin@gmail.com>"]
 license = "Apache-2.0"
 repository = "https://github.com/pepyakin/binaryen-rs"

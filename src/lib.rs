@@ -1,13 +1,3 @@
-pub extern crate binaryen_sys;
-
-#[cfg(test)]
-extern crate rand;
-
-#[cfg(test)]
-extern crate wat;
-
-pub use binaryen_sys as ffi;
-
 use std::ffi::CString;
 use std::os::raw::c_char;
 use std::rc::Rc;
@@ -28,16 +18,16 @@ pub struct CodegenConfig {
 }
 
 fn is_valid_pass(pass: &str) -> bool {
-    ffi::passes::OptimizationPass::from_str(pass).is_ok()
+    binaryen_sys::passes::OptimizationPass::from_str(pass).is_ok()
 }
 
 struct InnerModule {
-    raw: ffi::BinaryenModuleRef,
+    raw: binaryen_sys::BinaryenModuleRef,
 }
 
 impl Drop for InnerModule {
     fn drop(&mut self) {
-        unsafe { ffi::BinaryenModuleDispose(self.raw) }
+        unsafe { binaryen_sys::BinaryenModuleDispose(self.raw) }
     }
 }
 
@@ -53,7 +43,7 @@ impl Module {
     /// Binaryen and thus there is not much sense in creating an empty module.
     fn new() -> Module {
         unsafe {
-            let raw = ffi::BinaryenModuleCreate();
+            let raw = binaryen_sys::BinaryenModuleCreate();
             Module::from_raw(raw)
         }
     }
@@ -63,7 +53,10 @@ impl Module {
     /// Returns `Err` if an invalid module is given.
     pub fn read(module: &[u8]) -> Result<Module, ()> {
         unsafe {
-            let raw = ffi::BinaryenModuleSafeRead(module.as_ptr() as *const c_char, module.len());
+            let raw = binaryen_sys::BinaryenModuleSafeRead(
+                module.as_ptr() as *const c_char,
+                module.len(),
+            );
             if raw.is_null() {
                 return Err(());
             }
@@ -71,7 +64,7 @@ impl Module {
         }
     }
 
-    pub unsafe fn from_raw(raw: ffi::BinaryenModuleRef) -> Module {
+    pub unsafe fn from_raw(raw: binaryen_sys::BinaryenModuleRef) -> Module {
         Module {
             inner: Rc::new(InnerModule { raw }),
         }
@@ -80,7 +73,7 @@ impl Module {
     /// Run the standard optimization passes on the module.
     pub fn optimize(&mut self, codegen_config: &CodegenConfig) {
         unsafe {
-            ffi::BinaryenModuleRunPassesWithSettings(
+            binaryen_sys::BinaryenModuleRunPassesWithSettings(
                 self.inner.raw,
                 std::ptr::null_mut(),
                 0 as u32,
@@ -111,7 +104,7 @@ impl Module {
         let mut ptr_vec: Vec<_> = cstr_vec.iter().map(|pass| pass.as_ptr()).collect();
 
         unsafe {
-            ffi::BinaryenModuleRunPassesWithSettings(
+            binaryen_sys::BinaryenModuleRunPassesWithSettings(
                 self.inner.raw,
                 ptr_vec.as_mut_ptr(),
                 ptr_vec.len() as u32,
@@ -129,13 +122,14 @@ impl Module {
     /// safe public API.
     #[cfg(test)]
     fn is_valid(&self) -> bool {
-        unsafe { ffi::BinaryenModuleSafeValidate(self.inner.raw) == 1 }
+        unsafe { binaryen_sys::BinaryenModuleSafeValidate(self.inner.raw) == 1 }
     }
 
     /// Serialize a module into binary form.
     pub fn write(&self) -> Vec<u8> {
         unsafe {
-            let write_result = ffi::BinaryenModuleAllocateAndWrite(self.inner.raw, ptr::null());
+            let write_result =
+                binaryen_sys::BinaryenModuleAllocateAndWrite(self.inner.raw, ptr::null());
 
             // Create a slice from the resulting array and then copy it in vector.
             let binary_buf = if write_result.binaryBytes == 0 {
@@ -146,7 +140,7 @@ impl Module {
             };
 
             // This will free buffers in the write_result.
-            ffi::BinaryenShimDisposeBinaryenModuleAllocateAndWriteResult(write_result);
+            binaryen_sys::BinaryenShimDisposeBinaryenModuleAllocateAndWriteResult(write_result);
 
             binary_buf
         }

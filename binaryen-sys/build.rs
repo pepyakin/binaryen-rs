@@ -1,8 +1,3 @@
-extern crate cc;
-extern crate cmake;
-extern crate heck;
-extern crate regex;
-
 use heck::CamelCase;
 use regex::Regex;
 use std::env;
