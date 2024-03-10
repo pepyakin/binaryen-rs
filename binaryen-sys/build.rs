@@ -3,7 +3,6 @@ use regex::Regex;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 #[derive(Clone, PartialEq, Debug)]
 struct Pass {
@@ -129,9 +128,7 @@ fn gen_passes() {
 
 fn main() {
     if !Path::new("binaryen/.git").exists() {
-        let _ = Command::new("git")
-            .args(&["submodule", "update", "--init"])
-            .status();
+        panic!("binaryen submodule not found. Please run `git submodule update --init` first.");
     }
 
     gen_passes();
