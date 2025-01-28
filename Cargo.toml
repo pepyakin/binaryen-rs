@@ -16,5 +16,5 @@ keywords = ["binaryen", "webassembly", "wasm", "compiler"]
 binaryen-sys = { path = "binaryen-sys", version = "0.13.0" }
 
 [dev-dependencies]
-rand = "0.8.0"
+rand = "0.9.0"
 wat = "1.0"
