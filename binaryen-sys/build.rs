@@ -162,6 +162,7 @@ fn main() {
         .files(&[
             "binaryen/src/tools/fuzzing/fuzzing.cpp",
             "binaryen/src/tools/fuzzing/heap-types.cpp",
+            "binaryen/src/tools/fuzzing/parameters.cpp",
             "binaryen/src/tools/fuzzing/random.cpp",
         ])
         .include("binaryen/src")
