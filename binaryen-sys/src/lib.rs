@@ -18,7 +18,7 @@ mod tests {
         unsafe {
             let module = translateToFuzz(vec.as_ptr() as *const i8, vec.len(), true);
             let result = BinaryenModuleValidate(module);
-            assert!(result != 0);
+            assert!(result);
         }
     }
 
